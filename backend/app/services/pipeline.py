@@ -31,7 +31,7 @@ async def run_pipeline(
     pubmed_query = pubmed_query.strip().strip('"')
 
     # ── Etapa 2: buscar PMIDs ────────────────────────────
-    await step(f"Buscando no PubMed: "{pubmed_query}"…")
+    await step(f'Buscando no PubMed: "{pubmed_query}"…')    
     ids = await search_pubmed(pubmed_query)
 
     if not ids:
