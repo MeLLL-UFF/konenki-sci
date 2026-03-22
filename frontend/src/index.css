@@ -1,0 +1,171 @@
+/* Reset básico */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #f6f8fb;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #1f2933;
+  line-height: 1.5;
+}
+
+/* Container principal */
+.container {
+  max-width: 900px;
+  margin: 60px auto;
+  padding: 20px;
+}
+
+/* Header */
+.header {
+  margin-bottom: 30px;
+}
+
+.logo {
+  font-weight: 600;
+  font-size: 18px;
+  color: #6b46c1;
+}
+
+.subtitle {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: #7a7a7a;
+  margin-top: 4px;
+}
+
+/* Título principal */
+.hero-title {
+  font-size: 34px;
+  margin-top: 20px;
+  font-weight: 600;
+}
+
+.hero-title em {
+  font-style: italic;
+  color: #4c51bf;
+}
+
+.hero-desc {
+  margin-top: 12px;
+  color: #555;
+}
+
+/* Sugestões de perguntas */
+.suggestions {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.suggestion-chip {
+  border: 1px solid #d1d5db;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.suggestion-chip:hover {
+  background: #eef2ff;
+  border-color: #6366f1;
+}
+
+/* Input de pergunta */
+.ask-box {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.ask-input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 15px;
+}
+
+.ask-input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+/* Botão enviar */
+.ask-button {
+  background: #6366f1;
+  border: none;
+  color: white;
+  padding: 0 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.ask-button:hover {
+  background: #4f46e5;
+}
+
+/* Card de resposta */
+.answer-box {
+  margin-top: 30px;
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Referências */
+.references {
+  margin-top: 20px;
+}
+
+.ref-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-top: 10px;
+  transition: 0.2s;
+  background: white;
+}
+
+.ref-card:hover {
+  border-color: #6366f1;
+  background: #fafaff;
+}
+
+.ref-index {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.ref-year {
+  color: #6b7280;
+  margin-right: 8px;
+}
+
+.ref-journal {
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.ref-title {
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+/* Rodapé */
+.footer {
+  margin-top: 40px;
+  font-size: 13px;
+  color: #6b7280;
+}
