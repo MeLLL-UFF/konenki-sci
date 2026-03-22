@@ -1,3 +1,5 @@
+import React from "react";
+
 export default function StepIndicator({ step }) {
   return (
     <div className="step-indicator">

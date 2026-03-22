@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
+import React from "react";
 import { useAsk } from "../hooks/useAsk";
-import ChatBubble from "../components/ChatBubble";
-import StepIndicator from "../components/StepIndicator";
-import SuggestionChip from "../components/SuggestionChip";
+import ChatBubble from "./ChatBubble";
+import StepIndicator from "./StepIndicator";
+import SuggestionChip from "./SuggestionChip";
 
 const SUGGESTIONS = [
   "Quais são os sintomas mais comuns da menopausa?",

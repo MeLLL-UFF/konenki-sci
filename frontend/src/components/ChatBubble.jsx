@@ -1,5 +1,6 @@
 import { useState } from "react";
 import RefCard from "./RefCard";
+import React from "react";
 
 export default function ChatBubble({ entry }) {
   const [showRefs, setShowRefs] = useState(false);
