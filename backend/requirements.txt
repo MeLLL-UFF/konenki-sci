@@ -3,3 +3,5 @@ httpx
 pydantic
 pydantic-settings
 uvicorn
+unidecode
+datasets

@@ -10,16 +10,8 @@ class AskRequest(BaseModel):
     question:       str
     plain_language: bool = False
 
-class ArticleOut(BaseModel):
-    pmid:    str
-    title:   str
-    year:    str
-    journal: str
-
 class AskResponse(BaseModel):
-    answer:       str
-    pubmed_query: str
-    articles:     list[ArticleOut]
+    answer: str
 
 @router.post("/ask", response_model=AskResponse)
 async def ask(body: AskRequest):
@@ -30,11 +22,6 @@ async def ask(body: AskRequest):
     )
     return AskResponse(
         answer=result.answer,
-        pubmed_query=result.pubmed_query,
-        articles=[
-            ArticleOut(pmid=a.pmid, title=a.title, year=a.year, journal=a.journal)
-            for a in result.articles
-        ],
     )
 
 @router.post("/ask/stream")
@@ -93,7 +80,7 @@ async def _stream_pipeline(body: AskRequest, on_step):
             yield event
         elif kind == "done":
             result = payload
-            event = f"data: {json.dumps({'type': 'result', 'answer': result.answer, 'pubmed_query': result.pubmed_query, 'articles': [{'pmid': a.pmid, 'title': a.title, 'year': a.year, 'journal': a.journal} for a in result.articles]})}\n\n"
+            event = f"data: {json.dumps({'type': 'result', 'answer': result.answer})}\n\n"
             print(f"[STREAM_PIPELINE] Enviando evento de resultado, comprimento da resposta: {len(result.answer)}")
             yield event
             break
