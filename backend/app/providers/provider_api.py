@@ -18,7 +18,9 @@ class APIProvider(LLMProvider):
             return await self._openai(system, user)
         if settings.gemini_api_key:
             return await self._gemini(system, user)
-        raise ValueError("Nenhuma chave de API configurada. Defina ANTHROPIC_API_KEY, OPENAI_API_KEY ou GEMINI_API_KEY no .env")
+        if settings.maritaca_api_key:
+            return await self._maritaca(system, user)
+        raise ValueError("Nenhuma chave de API configurada. Defina ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY ou MARITACA_API_KEY no .env")
 
     # ── Anthropic ────────────────────────────────────────
     async def _anthropic(self, system: str, user: str) -> str:
@@ -49,6 +51,23 @@ class APIProvider(LLMProvider):
                 headers={"Authorization": f"Bearer {settings.openai_api_key}"},
                 json={
                     "model": settings.llm_api_model,
+                    "messages": [
+                        {"role": "system", "content": system},
+                        {"role": "user",   "content": user},
+                    ],
+                },
+            )
+            r.raise_for_status()
+            return r.json()["choices"][0]["message"]["content"]
+
+    # ── Maritaca (Sabiá) ─────────────────────────────────
+    async def _maritaca(self, system: str, user: str) -> str:
+        async with httpx.AsyncClient(timeout=60) as client:
+            r = await client.post(
+                "https://chat.maritaca.ai/api/chat/completions",
+                headers={"Authorization": f"Key {settings.maritaca_api_key}"},
+                json={
+                    "model": settings.llm_api_model or "sabia-3",
                     "messages": [
                         {"role": "system", "content": system},
                         {"role": "user",   "content": user},

@@ -1,9 +1,9 @@
 from dataclasses import dataclass, field
-from typing import List, Callable, Awaitable
+from typing import List, Callable, Awaitable, Optional
 from app.services.pubmed import search_pubmed, fetch_abstracts, Article
 from app.providers import get_llm_provider
 
-StepCallback = Callable[[str], Awaitable[None]] | None
+StepCallback = Optional[Callable[[str], Awaitable[None]]]
 
 @dataclass
 class PipelineResult:
@@ -31,7 +31,7 @@ async def run_pipeline(
     pubmed_query = pubmed_query.strip().strip('"')
 
     # ── Etapa 2: buscar PMIDs ────────────────────────────
-    await step(f"Buscando no PubMed: "{pubmed_query}"…")
+    await step(f'Buscando no PubMed: "{pubmed_query}"…')
     ids = await search_pubmed(pubmed_query)
 
     if not ids:

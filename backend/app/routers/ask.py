@@ -70,12 +70,15 @@ async def _stream_pipeline(body: AskRequest, on_step):
         await step_queue.put(("step", msg))
 
     async def run():
-        result = await run_pipeline(
-            question=body.question,
-            plain_language=body.plain_language,
-            on_step=enqueue_step,
-        )
-        await step_queue.put(("done", result))
+        try:
+            result = await run_pipeline(
+                question=body.question,
+                plain_language=body.plain_language,
+                on_step=enqueue_step,
+            )
+            await step_queue.put(("done", result))
+        except Exception as e:
+            await step_queue.put(("error", str(e)))
 
     task = asyncio.create_task(run())
 
@@ -86,6 +89,9 @@ async def _stream_pipeline(body: AskRequest, on_step):
         elif kind == "done":
             result = payload
             yield f"data: {json.dumps({'type': 'result', 'answer': result.answer, 'pubmed_query': result.pubmed_query, 'articles': [{'pmid': a.pmid, 'title': a.title, 'year': a.year, 'journal': a.journal} for a in result.articles]})}\n\n"
+            break
+        elif kind == "error":
+            yield f"data: {json.dumps({'type': 'error', 'message': payload})}\n\n"
             break
 
     await task

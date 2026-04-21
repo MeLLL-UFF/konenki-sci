@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     openai_api_key:    str = ""
     gemini_api_key:    str = ""
+    maritaca_api_key:  str = ""
     llm_api_model:     str = "claude-sonnet-4-20250514"  # troque conforme o provider
 
     # ── Local provider (Ollama / vLLM) ───────────────────
