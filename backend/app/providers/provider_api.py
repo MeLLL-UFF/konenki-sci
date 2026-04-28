@@ -67,7 +67,7 @@ class APIProvider(LLMProvider):
         )
         async with httpx.AsyncClient(timeout=60) as client:
             r = await client.post(url, json={
-                "system_instruction": {"parts": [{"text": system}]},
+                "systemInstruction": {"parts": [{"text": system}]},
                 "contents": [{"parts": [{"text": user}]}],
             })
             r.raise_for_status()

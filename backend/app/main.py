@@ -4,7 +4,7 @@ from app.routers import ask, health
 
 app = FastAPI(
     title="MenopausIA API",
-    description="API agnética para perguntas sobre menopausa baseadas em evidências (PubMed).",
+    description="API agnética para perguntas sobre menopausa baseadas em evidências (Dataset Hugging Face).",
     version="1.0.0",
 )
 

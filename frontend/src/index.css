@@ -1,0 +1,231 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 340 20% 97%;
+    --foreground: 340 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 340 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 340 30% 15%;
+
+    --primary: 330 45% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 340 25% 93%;
+    --secondary-foreground: 330 45% 35%;
+
+    --muted: 340 15% 94%;
+    --muted-foreground: 340 10% 50%;
+
+    --accent: 280 30% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 340 20% 88%;
+    --input: 340 20% 88%;
+    --ring: 330 45% 45%;
+
+    --radius: 0.75rem;
+
+    --chat-user: 330 40% 42%;
+    --chat-assistant: 340 20% 95%;
+    --chat-assistant-foreground: 340 30% 15%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --font-display: 'Playfair Display', serif;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  .dark {
+    --background: 340 20% 8%;
+    --foreground: 340 10% 90%;
+    --card: 340 20% 12%;
+    --card-foreground: 340 10% 90%;
+    --popover: 340 20% 12%;
+    --popover-foreground: 340 10% 90%;
+    --primary: 330 45% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 340 20% 18%;
+    --secondary-foreground: 330 30% 75%;
+    --muted: 340 15% 18%;
+    --muted-foreground: 340 10% 60%;
+    --accent: 280 30% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 340 15% 22%;
+    --input: 340 15% 22%;
+    --ring: 330 45% 55%;
+    --chat-user: 330 40% 50%;
+    --chat-assistant: 340 15% 15%;
+    --chat-assistant-foreground: 340 10% 85%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+}
+
+.hero-desc {
+  margin-top: 12px;
+  color: #555;
+}
+
+/* Sugestões de perguntas */
+.suggestions {
+  margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.suggestion-chip {
+  border: 1px solid #d1d5db;
+  background: white;
+  padding: 8px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.suggestion-chip:hover {
+  background: #eef2ff;
+  border-color: #6366f1;
+}
+
+/* Input de pergunta */
+.ask-box {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.ask-input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 15px;
+}
+
+.ask-input:focus {
+  outline: none;
+  border-color: #6366f1;
+}
+
+/* Botão enviar */
+.ask-button {
+  background: #6366f1;
+  border: none;
+  color: white;
+  padding: 0 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.ask-button:hover {
+  background: #4f46e5;
+}
+
+/* Card de resposta */
+.answer-box {
+  margin-top: 30px;
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  border: 1px solid #e5e7eb;
+}
+
+/* Referências */
+.references {
+  margin-top: 20px;
+}
+
+.ref-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  margin-top: 10px;
+  transition: 0.2s;
+  background: white;
+}
+
+.ref-card:hover {
+  border-color: #6366f1;
+  background: #fafaff;
+}
+
+.ref-index {
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.ref-year {
+  color: #6b7280;
+  margin-right: 8px;
+}
+
+.ref-journal {
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.ref-title {
+  margin-top: 4px;
+  font-size: 14px;
+}
+
+/* Rodapé */
+.footer {
+  margin-top: 40px;
+  font-size: 13px;
+  color: #6b7280;
+}

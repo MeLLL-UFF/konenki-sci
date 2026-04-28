@@ -1,19 +1,27 @@
+import os
 import unidecode
 from datasets import load_dataset
 
-ds = load_dataset("AKCIT/MedPT")
+hf_token = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_TOKEN") or os.getenv("HF_HUB_TOKEN")
 
-seen = set()
+
+def load_base_dataset():
+    if hf_token:
+        return load_dataset("AKCIT/MedPT", use_auth_token=hf_token)
+    return load_dataset("AKCIT/MedPT")
+
+
 def remove_duplicates(example):
-    key = (example['question'],example['answer'])
+    key = (example['question'], example['answer'])
 
-    if key in seen:
+    if key in remove_duplicates.seen:
         return False
-
-    seen.add(key)
+    
+    remove_duplicates.seen.add(key)
     return True
 
-ds = ds.filter(remove_duplicates)
+remove_duplicates.seen = set()
+
 
 def filter_health_woman(example):
 
@@ -29,14 +37,23 @@ def filter_health_woman(example):
 
     return False
 
-dataset_filter = ds.filter(filter_health_woman)
 
 def format_io(example):
     return {
         "input": example['question'],
-        "output": example["answer"]
+        "output": example["answer"],
     }
 
-dataset_io = dataset_filter["train"].map(format_io, remove_columns=dataset_filter["train"].column_names)
-dataset_io.to_json("dataset_health_fem.jsonl", force_ascii=False)
+
+def load_health_female_dataset():
+    ds = load_base_dataset()
+    remove_duplicates.seen.clear()
+    ds = ds.filter(remove_duplicates)
+    ds = ds.filter(filter_health_woman)
+    return ds["train"].map(format_io, remove_columns=ds["train"].column_names).to_list()
+
+
+if __name__ == "__main__":
+    dataset_io = load_health_female_dataset()
+    dataset_io.to_json("dataset_health_fem.jsonl", force_ascii=False)
 
