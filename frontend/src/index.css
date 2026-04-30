@@ -1,0 +1,234 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #fdf6f0;
+  color: #1a1a1a;
+  min-height: 100vh;
+}
+
+.page { display: flex; flex-direction: column; height: 100vh; }
+
+.header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e8d9cf;
+  background: #fff;
+}
+.logo { font-size: 1.2rem; font-weight: 700; }
+.logo span { color: #c05c7e; }
+.tagline { font-size: 0.7rem; color: #999; letter-spacing: 0.05em; margin-top: 2px; }
+
+.main { flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+.intro { text-align: center; padding: 2rem 1rem; }
+.intro h1 { font-size: 1.6rem; line-height: 1.4; margin-bottom: 0.75rem; }
+.intro em { color: #c05c7e; font-style: normal; }
+.intro p { color: #666; margin-bottom: 1.5rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+
+.chip {
+  background: #fff;
+  border: 1px solid #e0ccc5;
+  border-radius: 999px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.chip:hover { background: #fce8f0; border-color: #c05c7e; }
+
+.bubble-wrap { display: flex; flex-direction: column; gap: 0.5rem; }
+.bubble { padding: 0.75rem 1rem; border-radius: 1rem; max-width: 80%; line-height: 1.6; }
+.bubble-user { background: #c05c7e; color: #fff; align-self: flex-end; border-bottom-right-radius: 0.25rem; }
+.bubble-bot  { background: #fff; border: 1px solid #e8d9cf; align-self: flex-start; border-bottom-left-radius: 0.25rem; }
+.badge { font-size: 0.7rem; background: rgba(255,255,255,0.25); border-radius: 999px; padding: 0.1rem 0.5rem; margin-left: 0.5rem; }
+.query-label { font-size: 0.8rem; color: #999; margin-bottom: 0.5rem; }
+.answer-text p { margin-bottom: 0.5rem; }
+.answer-text p:last-child { margin-bottom: 0; }
+
+.refs-section { margin-top: 0.75rem; border-top: 1px solid #f0e0d8; padding-top: 0.5rem; }
+.refs-toggle { background: none; border: none; cursor: pointer; color: #c05c7e; font-size: 0.85rem; padding: 0; }
+.ref-card {
+  display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: baseline;
+  text-decoration: none; color: inherit;
+  background: #fdf6f0; border: 1px solid #e8d9cf; border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem; margin-top: 0.4rem; font-size: 0.8rem;
+}
+.ref-card:hover { background: #fce8f0; }
+.ref-index { font-weight: 700; color: #c05c7e; }
+.ref-year  { color: #999; }
+.ref-journal { color: #666; font-style: italic; flex: 1; }
+.ref-title { width: 100%; color: #333; }
+
+.step-indicator { display: flex; align-items: center; gap: 0.5rem; color: #999; font-size: 0.9rem; padding: 0.5rem 0; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: #c05c7e; animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+.error { color: #c0392b; font-size: 0.9rem; }
+
+.input-bar {
+  border-top: 1px solid #e8d9cf;
+  background: #fff;
+  padding: 0.75rem 1rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.plain-toggle {
+  align-self: flex-start;
+  background: none; border: 1px solid #e0ccc5; border-radius: 999px;
+  padding: 0.3rem 0.75rem; font-size: 0.8rem; cursor: pointer;
+}
+.plain-toggle.active { background: #fce8f0; border-color: #c05c7e; color: #c05c7e; }
+.input-row { display: flex; gap: 0.5rem; align-items: flex-end; }
+textarea {
+  flex: 1; resize: none; border: 1px solid #e0ccc5; border-radius: 0.75rem;
+  padding: 0.6rem 0.9rem; font-size: 0.95rem; font-family: inherit;
+  background: #fdf6f0; outline: none;
+}
+textarea:focus { border-color: #c05c7e; }
+.send-btn {
+  background: #c05c7e; color: #fff; border: none; border-radius: 50%;
+  width: 2.2rem; height: 2.2rem; font-size: 1.1rem; cursor: pointer;
+  flex-shrink: 0;
+}
+.send-btn:disabled { background: #ddd; cursor: default; }
+.disclaimer { font-size: 0.7rem; color: #bbb; text-align: center; }
+
+/* ── Shared header nav ───────────────────────────────────────────── */
+.header-row { display: flex; align-items: center; justify-content: space-between; }
+.header-nav { display: flex; gap: 0.5rem; }
+.nav-link {
+  background: none; border: 1px solid #e0ccc5; border-radius: 999px;
+  padding: 0.3rem 0.85rem; font-size: 0.8rem; cursor: pointer; color: #c05c7e;
+  transition: background 0.15s;
+}
+.nav-link:hover { background: #fce8f0; }
+
+/* ── Triagem entry point (Home) ─────────────────────────────────── */
+.triagem-entry {
+  display: flex; align-items: center; gap: 0.75rem;
+  width: 100%; max-width: 480px; margin: 0 auto 1.25rem;
+  background: #fff; border: 1.5px solid #c05c7e; border-radius: 1rem;
+  padding: 0.85rem 1rem; cursor: pointer; text-align: left;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.triagem-entry:hover { background: #fce8f0; box-shadow: 0 2px 8px rgba(192,92,126,0.15); }
+.triagem-entry-icon { font-size: 1.4rem; flex-shrink: 0; }
+.triagem-entry-text { flex: 1; display: flex; flex-direction: column; gap: 0.15rem; }
+.triagem-entry-text strong { font-size: 0.95rem; color: #c05c7e; }
+.triagem-entry-text span  { font-size: 0.8rem; color: #888; }
+.triagem-entry-arrow { color: #c05c7e; font-size: 1.1rem; flex-shrink: 0; }
+
+/* ── Triagem page layout ─────────────────────────────────────────── */
+.triagem-header { display: flex; align-items: center; gap: 1rem; }
+.back-btn {
+  background: none; border: none; cursor: pointer;
+  color: #c05c7e; font-size: 0.9rem; padding: 0; flex-shrink: 0;
+}
+.triagem-main {
+  flex: 1; overflow-y: auto; padding: 1.5rem;
+  display: flex; flex-direction: column; align-items: center;
+}
+.triagem-result-main { align-items: stretch; }
+
+/* ── Triagem card & options ──────────────────────────────────────── */
+.triagem-card { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 1rem; }
+.triagem-card h2 { font-size: 1.2rem; color: #1a1a1a; }
+.triagem-subtitle { font-size: 0.85rem; color: #888; margin-top: -0.5rem; }
+.triagem-options { display: flex; flex-direction: column; gap: 0.5rem; }
+.triagem-multi { flex-direction: row; flex-wrap: wrap; }
+
+.triagem-option {
+  background: #fff; border: 1.5px solid #e0ccc5; border-radius: 0.75rem;
+  padding: 0.65rem 1rem; font-size: 0.9rem; cursor: pointer; text-align: left;
+  display: flex; flex-direction: column; gap: 0.1rem;
+  transition: border-color 0.15s, background 0.15s;
+}
+.triagem-option:hover { border-color: #c05c7e; background: #fdf6f0; }
+.triagem-option.selected { border-color: #c05c7e; background: #fce8f0; color: #c05c7e; font-weight: 600; }
+.triagem-multi .triagem-option { flex-direction: row; }
+.option-label { font-weight: 600; }
+.option-desc  { font-size: 0.78rem; color: #999; font-weight: 400; }
+.check { color: #c05c7e; }
+
+.triagem-next {
+  background: #c05c7e; color: #fff; border: none; border-radius: 0.75rem;
+  padding: 0.7rem 1.25rem; font-size: 0.95rem; cursor: pointer; align-self: flex-end;
+  transition: background 0.15s;
+}
+.triagem-next:hover:not(:disabled) { background: #a84d6c; }
+.triagem-next:disabled { background: #ddd; cursor: default; }
+
+/* ── Result screen ───────────────────────────────────────────────── */
+.triagem-profile-summary {
+  background: #fff; border: 1px solid #e8d9cf; border-radius: 1rem;
+  padding: 1rem 1.25rem; max-width: 520px; width: 100%;
+  margin-bottom: 1rem; align-self: flex-start;
+}
+.triagem-profile-summary h3 { font-size: 1rem; color: #c05c7e; margin-bottom: 0.5rem; }
+.triagem-profile-summary ul { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; color: #555; }
+
+.triagem-profile-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+.profile-chip {
+  background: #fce8f0; border: 1px solid #e8b8cc; border-radius: 999px;
+  padding: 0.25rem 0.75rem; font-size: 0.78rem; color: #c05c7e;
+}
+
+.triagem-cta-btn {
+  align-self: center; margin-top: 1rem;
+  background: none; border: 1.5px solid #c05c7e; color: #c05c7e;
+  border-radius: 0.75rem; padding: 0.65rem 1.25rem; font-size: 0.9rem; cursor: pointer;
+  transition: background 0.15s;
+}
+.triagem-cta-btn:hover { background: #fce8f0; }
+
+.home-entries { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; max-width: 480px; margin: 0 auto 1.25rem; }
+.home-entries .triagem-entry { margin: 0; max-width: 100%; }
+
+/* ── News list page ──────────────────────────────────────────────── */
+.news-main { gap: 1.5rem; }
+.section-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: #999; text-transform: uppercase; margin-bottom: 0.75rem; }
+.news-loading, .news-empty { font-size: 0.9rem; color: #999; }
+
+.trends-section { background: #fff; border: 1px solid #e8d9cf; border-radius: 1rem; padding: 1rem 1.25rem; }
+.trends-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.trend-card { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.5rem 0; border-bottom: 1px solid #f0e0d8; }
+.trend-card:last-child { border-bottom: none; }
+.trend-title { font-size: 0.85rem; color: #333; line-height: 1.4; }
+.trend-meta  { font-size: 0.75rem; color: #999; font-style: italic; }
+
+.posts-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.post-card {
+  background: #fff; border: 1px solid #e8d9cf; border-radius: 1rem;
+  padding: 1rem 1.25rem; cursor: pointer; text-align: left; width: 100%;
+  display: flex; flex-direction: column; gap: 0.5rem;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+.post-card:hover { background: #fdf6f0; box-shadow: 0 2px 8px rgba(192,92,126,0.1); }
+.post-card-body { display: flex; flex-direction: column; gap: 0.25rem; }
+.post-title   { font-size: 1rem; font-weight: 600; color: #1a1a1a; }
+.post-excerpt { font-size: 0.85rem; color: #666; line-height: 1.4; }
+.post-card-footer { display: flex; justify-content: space-between; align-items: center; }
+.post-date  { font-size: 0.75rem; color: #999; }
+.post-arrow { color: #c05c7e; font-size: 1rem; }
+
+/* ── News post page ──────────────────────────────────────────────── */
+.news-post-main { max-width: 680px; margin: 0 auto; width: 100%; }
+.news-article { display: flex; flex-direction: column; gap: 1rem; }
+.article-header { border-bottom: 1px solid #e8d9cf; padding-bottom: 1rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.article-title   { font-size: 1.5rem; line-height: 1.35; color: #1a1a1a; }
+.article-date    { font-size: 0.8rem; color: #999; }
+.article-excerpt { font-size: 1rem; color: #555; font-style: italic; line-height: 1.5; }
+
+.article-body { line-height: 1.7; color: #2a2a2a; font-size: 0.95rem; }
+.article-body h2 { font-size: 1.2rem; margin: 1.25rem 0 0.4rem; color: #1a1a1a; }
+.article-body h3 { font-size: 1.05rem; margin: 1rem 0 0.35rem; color: #1a1a1a; }
+.article-body h4 { font-size: 0.95rem; margin: 0.75rem 0 0.3rem; color: #333; }
+.article-body p  { margin-bottom: 0.75rem; }
+.article-body ul, .article-body ol { padding-left: 1.4rem; margin-bottom: 0.75rem; }
+.article-body li { margin-bottom: 0.3rem; }
+.article-body blockquote { border-left: 3px solid #c05c7e; padding-left: 1rem; color: #555; font-style: italic; margin: 0.75rem 0; }
+.article-body hr { border: none; border-top: 1px solid #e8d9cf; margin: 1.25rem 0; }
+.article-body .callout { background: #fce8f0; border-radius: 0.5rem; padding: 0.75rem 1rem; margin: 0.75rem 0; font-size: 0.9rem; }
+.article-body a { color: #c05c7e; }
+.article-body strong { font-weight: 700; }
+.article-body code { background: #f5f0ee; border-radius: 0.25rem; padding: 0.1rem 0.35rem; font-size: 0.85em; }

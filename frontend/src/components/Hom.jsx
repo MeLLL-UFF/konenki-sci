@@ -13,7 +13,7 @@ const SUGGESTIONS = [
   "O que é menopausa precoce?",
 ];
 
-export default function Home() {
+export default function Home({ onTriagem, onNews }) {
   const [question, setQuestion]   = useState("");
   const [plain,    setPlain]      = useState(false);
   const [history,  setHistory]    = useState([]);
@@ -38,7 +38,12 @@ export default function Home() {
   return (
     <div className="page">
       <header className="header">
-        <div className="logo">🌸 <span>MenopausIA</span></div>
+        <div className="header-row">
+          <div className="logo">🌸 <span>MenopausIA</span></div>
+          <nav className="header-nav">
+            <button className="nav-link" onClick={onNews}>Newsletter</button>
+          </nav>
+        </div>
         <p className="tagline">RESPOSTAS BASEADAS EM EVIDÊNCIAS · PUBMED</p>
       </header>
 
@@ -47,6 +52,24 @@ export default function Home() {
           <section className="intro">
             <h1>Suas dúvidas sobre menopausa,<br /><em>respondidas pela ciência.</em></h1>
             <p>Cada resposta é gerada a partir de artigos indexados no <strong>PubMed</strong>.</p>
+            <div className="home-entries">
+            <button className="triagem-entry" onClick={onTriagem}>
+              <span className="triagem-entry-icon">🩺</span>
+              <div className="triagem-entry-text">
+                <strong>Triagem personalizada</strong>
+                <span>4 perguntas → orientações baseadas no seu perfil</span>
+              </div>
+              <span className="triagem-entry-arrow">→</span>
+            </button>
+            <button className="triagem-entry" onClick={onNews}>
+              <span className="triagem-entry-icon">📰</span>
+              <div className="triagem-entry-text">
+                <strong>Newsletter científica</strong>
+                <span>Edições com curadoria baseada em evidências</span>
+              </div>
+              <span className="triagem-entry-arrow">→</span>
+            </button>
+            </div>
             <div className="chips">
               {SUGGESTIONS.map(s => (
                 <SuggestionChip key={s} text={s} onClick={t => { setQuestion(t); textRef.current?.focus(); }} />
