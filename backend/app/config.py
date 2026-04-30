@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     # ── PubMed ────────────────────────────────────────────
     pubmed_max_results: int = 6
 
+    # ── Notion (newsletter CMS) ───────────────────────────
+    notion_api_key:      str = ""
+    notion_database_id:  str = ""
+
     class Config:
         env_file = ".env"
 

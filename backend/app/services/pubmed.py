@@ -30,6 +30,23 @@ async def search_pubmed(query: str) -> List[str]:
         r.raise_for_status()
         return r.json().get("esearchresult", {}).get("idlist", [])
 
+async def fetch_recent_topics(days: int = 30, max_results: int = 8) -> List[Article]:
+    """Retorna artigos recentes sobre menopausa para sugestão de tópicos."""
+    async with httpx.AsyncClient(timeout=20) as client:
+        r = await client.get(ESEARCH, params={
+            "db":       "pubmed",
+            "term":     "menopause[MeSH Terms] OR menopausal[tiab]",
+            "retmax":   max_results,
+            "retmode":  "json",
+            "sort":     "pub_date",
+            "datetype": "pdat",
+            "reldate":  days,
+        })
+        r.raise_for_status()
+        ids = r.json().get("esearchresult", {}).get("idlist", [])
+    return await fetch_abstracts(ids)
+
+
 async def fetch_abstracts(ids: List[str]) -> List[Article]:
     """Busca e parseia os abstracts dos PMIDs fornecidos."""
     if not ids:
