@@ -12,14 +12,24 @@ class APIProvider(LLMProvider):
     """
 
     async def complete(self, system: str, user: str) -> str:
+        model = settings.llm_api_model or ""
+        if model.startswith("claude") and settings.anthropic_api_key:
+            return await self._anthropic(system, user)
+        if model.startswith(("sabia", "sabiá")) and settings.maritaca_api_key:
+            return await self._maritaca(system, user)
+        if model.startswith("gemini") and settings.gemini_api_key:
+            return await self._gemini(system, user)
+        if model.startswith("gpt") and settings.openai_api_key:
+            return await self._openai(system, user)
+        # fallback: primeira chave disponível
         if settings.anthropic_api_key:
             return await self._anthropic(system, user)
-        if settings.openai_api_key:
-            return await self._openai(system, user)
-        if settings.gemini_api_key:
-            return await self._gemini(system, user)
         if settings.maritaca_api_key:
             return await self._maritaca(system, user)
+        if settings.gemini_api_key:
+            return await self._gemini(system, user)
+        if settings.openai_api_key:
+            return await self._openai(system, user)
         raise ValueError("Nenhuma chave de API configurada. Defina ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY ou MARITACA_API_KEY no .env")
 
     # ── Anthropic ────────────────────────────────────────

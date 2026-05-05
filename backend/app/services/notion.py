@@ -94,6 +94,9 @@ def _extract_prop(page: dict, name: str) -> Any:
 
 
 async def list_published() -> list[dict]:
+    if not settings.notion_api_key or not settings.notion_database_id:
+        return []
+
     async with httpx.AsyncClient(timeout=15) as client:
         r = await client.post(
             f"{BASE_URL}/databases/{settings.notion_database_id}/query",

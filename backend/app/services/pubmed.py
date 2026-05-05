@@ -30,6 +30,17 @@ async def search_pubmed(query: str) -> List[str]:
         r.raise_for_status()
         return r.json().get("esearchresult", {}).get("idlist", [])
 
+
+async def search_pubmed_with_fallback(query: str) -> tuple[List[str], str]:
+    """Busca com fallback progressivo: remove termos do fim até encontrar resultados."""
+    terms = query.split()
+    while len(terms) >= 2:
+        ids = await search_pubmed(" ".join(terms))
+        if ids:
+            return ids, " ".join(terms)
+        terms.pop()
+    return [], query
+
 async def fetch_recent_topics(days: int = 30, max_results: int = 8) -> List[Article]:
     """Retorna artigos recentes sobre menopausa para sugestão de tópicos."""
     async with httpx.AsyncClient(timeout=20) as client:

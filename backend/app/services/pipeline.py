@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Callable, Awaitable, Optional
-from app.services.pubmed import search_pubmed, fetch_abstracts, Article
+from app.services.pubmed import search_pubmed_with_fallback, fetch_abstracts, Article
 from app.providers import get_llm_provider
 
 StepCallback = Optional[Callable[[str], Awaitable[None]]]
@@ -30,9 +30,12 @@ async def run_pipeline(
     )
     pubmed_query = pubmed_query.strip().strip('"')
 
-    # ── Etapa 2: buscar PMIDs ────────────────────────────
+    # ── Etapa 2: buscar PMIDs com fallback progressivo ───
     await step(f'Buscando no PubMed: "{pubmed_query}"…')
-    ids = await search_pubmed(pubmed_query)
+    ids, used_query = await search_pubmed_with_fallback(pubmed_query)
+
+    if used_query != pubmed_query:
+        await step(f'Refinando busca para: "{used_query}"…')
 
     if not ids:
         return PipelineResult(
@@ -78,4 +81,4 @@ async def run_pipeline(
     )
 
     answer = await llm.complete(system=system, user=user)
-    return PipelineResult(answer=answer, pubmed_query=pubmed_query, articles=articles)
+    return PipelineResult(answer=answer, pubmed_query=used_query, articles=articles)
