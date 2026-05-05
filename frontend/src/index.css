@@ -157,6 +157,14 @@ textarea:focus { border-color: #c05c7e; }
 }
 .triagem-next:hover:not(:disabled) { background: #a84d6c; }
 .triagem-next:disabled { background: #ddd; cursor: default; }
+.triagem-outro-input {
+  width: 100%; padding: 0.6rem 0.9rem; font-size: 0.9rem;
+  border: 1.5px solid #c05c7e; border-radius: 10px;
+  outline: none; color: #1a1a1a; background: #fff8fb;
+  box-sizing: border-box;
+}
+.triagem-outro-input::placeholder { color: #bbb; }
+.triagem-outro-input:focus { border-color: #a84d6c; box-shadow: 0 0 0 2px #fce8f0; }
 
 /* ── Result screen ───────────────────────────────────────────────── */
 .triagem-profile-summary {

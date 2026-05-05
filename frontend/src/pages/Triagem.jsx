@@ -21,6 +21,8 @@ const SINTOMAS = [
   "Alterações de humor",
 ];
 
+const OUTROS_LABEL = "Outros";
+
 const TRATAMENTOS = [
   "Terapia hormonal (TRH/TH)",
   "Fitoterápicos ou suplementos",
@@ -35,6 +37,19 @@ function buildQuery({ fase, sintomas, incomodo, tratamento }) {
     ? "sem tratamento atual"
     : `em uso de ${tratamento}`;
   return `Mulher em fase de ${faseLabel}, com os seguintes sintomas: ${sintomasStr}. Principal incômodo: ${incomodo}. ${tratStr}. Com base nas evidências científicas mais recentes, quais intervenções têm maior eficácia para esses sintomas? Inclua opções hormonais e não-hormonais com seus respectivos níveis de evidência.`;
+}
+
+function OutroInput({ value, onChange, placeholder }) {
+  return (
+    <input
+      type="text"
+      className="triagem-outro-input"
+      placeholder={placeholder}
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      autoFocus
+    />
+  );
 }
 
 function Header({ step, total, label, onBack }) {
@@ -58,7 +73,11 @@ export default function Triagem({ onBack }) {
   const [step, setStep]           = useState(0);
   const [fase, setFase]           = useState(null);
   const [sintomas, setSintomas]   = useState([]);
+  const [sintomaOutroAberto, setSintomaOutroAberto] = useState(false);
+  const [sintomaOutroTexto, setSintomaOutroTexto]   = useState("");
   const [incomodo, setIncomodo]   = useState(null);
+  const [incomodoOutroAberto, setIncomodoOutroAberto] = useState(false);
+  const [incomodoOutroTexto, setIncomodoOutroTexto]   = useState("");
   const [tratamento, setTratamento] = useState(null);
   const [finalResult, setFinalResult] = useState(null);
 
@@ -71,10 +90,34 @@ export default function Triagem({ onBack }) {
   const toggleSintoma = (s) =>
     setSintomas(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s]);
 
+  const toggleOutroSintoma = () => {
+    setSintomaOutroAberto(prev => !prev);
+    if (sintomaOutroAberto) setSintomaOutroTexto("");
+  };
+
+  const selecionarIncomodo = (s) => {
+    setIncomodo(s);
+    setIncomodoOutroAberto(false);
+    setIncomodoOutroTexto("");
+  };
+
+  const toggleOutroIncomodo = () => {
+    setIncomodoOutroAberto(prev => !prev);
+    if (incomodoOutroAberto) setIncomodoOutroTexto("");
+    setIncomodo(null);
+  };
+
+  const todosSintomas = [
+    ...sintomas,
+    ...(sintomaOutroAberto && sintomaOutroTexto.trim() ? [sintomaOutroTexto.trim()] : []),
+  ];
+
+  const incomodoFinal = incomodoOutroAberto ? incomodoOutroTexto.trim() : incomodo;
+
   const handleSubmit = (t) => {
     setTratamento(t);
     setStep(4);
-    const query = buildQuery({ fase, sintomas, incomodo, tratamento: t });
+    const query = buildQuery({ fase, sintomas: todosSintomas, incomodo: incomodoFinal, tratamento: t });
     submit(query, true);
   };
 
@@ -109,7 +152,7 @@ export default function Triagem({ onBack }) {
       <Header step={2} total={4} label="SEUS SINTOMAS" onBack={() => setStep(0)} />
       <main className="triagem-main">
         <div className="triagem-card">
-          <h2>Quais sintomas você está experienciando?</h2>
+          <h2>Quais sintomas você tem sentido recentemente?</h2>
           <p className="triagem-subtitle">Selecione todos que se aplicam</p>
           <div className="triagem-options triagem-multi">
             {SINTOMAS.map(s => (
@@ -121,8 +164,25 @@ export default function Triagem({ onBack }) {
                 {sintomas.includes(s) && <span className="check">✓ </span>}{s}
               </button>
             ))}
+            <button
+              className={`triagem-option ${sintomaOutroAberto ? "selected" : ""}`}
+              onClick={toggleOutroSintoma}
+            >
+              {sintomaOutroAberto && <span className="check">✓ </span>}{OUTROS_LABEL}
+            </button>
           </div>
-          <button className="triagem-next" disabled={sintomas.length === 0} onClick={() => setStep(2)}>
+          {sintomaOutroAberto && (
+            <OutroInput
+              value={sintomaOutroTexto}
+              onChange={setSintomaOutroTexto}
+              placeholder="Descreva seu sintoma…"
+            />
+          )}
+          <button
+            className="triagem-next"
+            disabled={todosSintomas.length === 0}
+            onClick={() => setStep(2)}
+          >
             Próximo →
           </button>
         </div>
@@ -137,17 +197,34 @@ export default function Triagem({ onBack }) {
         <div className="triagem-card">
           <h2>Qual seu principal incômodo hoje?</h2>
           <div className="triagem-options">
-            {sintomas.map(s => (
+            {todosSintomas.map(s => (
               <button
                 key={s}
                 className={`triagem-option ${incomodo === s ? "selected" : ""}`}
-                onClick={() => setIncomodo(s)}
+                onClick={() => selecionarIncomodo(s)}
               >
                 {s}
               </button>
             ))}
+            <button
+              className={`triagem-option ${incomodoOutroAberto ? "selected" : ""}`}
+              onClick={toggleOutroIncomodo}
+            >
+              {incomodoOutroAberto && <span className="check">✓ </span>}{OUTROS_LABEL}
+            </button>
           </div>
-          <button className="triagem-next" disabled={!incomodo} onClick={() => setStep(3)}>
+          {incomodoOutroAberto && (
+            <OutroInput
+              value={incomodoOutroTexto}
+              onChange={setIncomodoOutroTexto}
+              placeholder="Descreva seu principal incômodo…"
+            />
+          )}
+          <button
+            className="triagem-next"
+            disabled={!incomodoFinal}
+            onClick={() => setStep(3)}
+          >
             Próximo →
           </button>
         </div>
@@ -186,8 +263,8 @@ export default function Triagem({ onBack }) {
             <h3>Analisando seu perfil…</h3>
             <ul>
               <li><strong>Fase:</strong> {FASES.find(f => f.id === fase)?.label}</li>
-              <li><strong>Sintomas:</strong> {sintomas.join(", ")}</li>
-              <li><strong>Principal incômodo:</strong> {incomodo}</li>
+              <li><strong>Sintomas:</strong> {todosSintomas.join(", ")}</li>
+              <li><strong>Principal incômodo:</strong> {incomodoFinal}</li>
             </ul>
           </div>
         )}
@@ -197,7 +274,7 @@ export default function Triagem({ onBack }) {
           <>
             <div className="triagem-profile-chips">
               <span className="profile-chip">{FASES.find(f => f.id === fase)?.label}</span>
-              <span className="profile-chip">{incomodo}</span>
+              <span className="profile-chip">{incomodoFinal}</span>
               <span className="profile-chip">{tratamento}</span>
             </div>
             <ChatBubble entry={finalResult} />
