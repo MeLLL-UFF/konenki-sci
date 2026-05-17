@@ -3,7 +3,7 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # ── Provider switches ────────────────────────────────
-    llm_provider: str = "api"      # "api" | "local"
+    llm_provider: str = "local"      # "api" | "local"
     emb_provider: str = "api"      # "api" | "local"  (reservado para Fase 2)
 
     # ── API provider credentials ─────────────────────────
@@ -15,12 +15,15 @@ class Settings(BaseSettings):
 
     # ── Local provider (Ollama / vLLM) ───────────────────
     ollama_base_url:   str = "http://localhost:11434"
-    ollama_model:      str = "llama3"
+    ollama_model:      str = "mistral"
     vllm_base_url:     str = "http://localhost:8000"
     vllm_model:        str = "mistral-7b-instruct"
 
     # ── PubMed ────────────────────────────────────────────
     pubmed_max_results: int = 6
+
+    # ── News API ──────────────────────────────────────────
+    news_api_key: str = ""
 
     # ── Notion (newsletter CMS) ───────────────────────────
     notion_api_key:      str = ""

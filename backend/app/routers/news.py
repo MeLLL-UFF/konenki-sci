@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.services import notion, markdown_store
+from app.services import notion, posts
 from app.services.newsletter import generate_newsletter
 from app.services.pubmed import fetch_recent_topics
 
@@ -8,24 +8,24 @@ router = APIRouter()
 
 @router.get("/news")
 async def list_news():
-    local = markdown_store.list_posts()
+    local_posts = posts.list_posts()
     remote = await notion.list_published()
     seen: set = set()
-    posts = []
-    for p in local + remote:
+    items = []
+    for p in local_posts + remote:
         if p["slug"] not in seen:
             seen.add(p["slug"])
-            posts.append(p)
+            items.append(p)
 
-    if not posts:
+    if not items:
         try:
             data = await generate_newsletter()
-            slug = markdown_store.save_post(data["title"], data["excerpt"], data["body"])
-            posts = markdown_store.list_posts()
+            slug = posts.save_post(data["title"], data["excerpt"], data["body"])
+            items = posts.list_posts()
         except Exception:
             pass
 
-    return {"posts": posts}
+    return {"posts": items}
 
 
 @router.get("/news/trends")
@@ -45,13 +45,13 @@ async def generate_post():
         data = await generate_newsletter()
     except ValueError as e:
         raise HTTPException(status_code=503, detail=str(e))
-    slug = markdown_store.save_post(data["title"], data["excerpt"], data["body"])
+    slug = posts.save_post(data["title"], data["excerpt"], data["body"])
     return {"slug": slug, "title": data["title"]}
 
 
 @router.get("/news/{slug}")
 async def get_post(slug: str):
-    post = markdown_store.get_post(slug) or await notion.get_post(slug)
+    post = posts.get_post(slug) or await notion.get_post(slug)
     if not post:
         raise HTTPException(status_code=404, detail="Edição não encontrada")
     return post

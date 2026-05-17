@@ -3,6 +3,8 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from typing import List
 from app.config import get_settings
+from app.services.db_store import save_pubmed_article, record_fetch_log
+from db_connection import FetchType
 
 settings = get_settings()
 
@@ -92,4 +94,8 @@ async def fetch_abstracts(ids: List[str]) -> List[Article]:
             year    = txt(".//PubDate/Year"),
             journal = txt(".//Journal/Title"),
         ))
+
+    for article in articles:
+        save_pubmed_article(article)  # persiste artigo no banco usando pubmed_id único
+    record_fetch_log(FetchType.articles, new_items=len(articles))
     return articles
