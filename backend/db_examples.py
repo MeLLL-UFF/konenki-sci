@@ -2,10 +2,9 @@
 #  Exemplos de uso — db_examples.py
 # ============================================================
 
-from db_connection import get_db, Article, Trend, ChatSession, ChatMessage
-from db_connection import SessionStage, MessageRole, FetchLog, FetchType, FetchStatus
+from db_connection import get_db, Article, Trend
+from db_connection import FetchLog, FetchType, FetchStatus
 from sqlalchemy import select
-import numpy as np
 
 
 # ------------------------------------------------------------

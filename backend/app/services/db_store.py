@@ -34,6 +34,7 @@ def save_pubmed_article(article_data: object) -> ArticleModel:
             summary=article_data.abstract[:700],
         )
         db.add(record)
+        print(f"Salvando artigo PubMed ID {article_data.pmid} - {article_data.title}")
         db.flush()
         return record
 
@@ -53,6 +54,7 @@ def save_trend(keyword: str, source: str = "newsapi") -> TrendModel:
 
         record = TrendModel(source=source, keyword=keyword)
         db.add(record)
+        print(f"Salvando tendência '{keyword}' da fonte '{source}'")
         db.flush()
         return record
 
@@ -94,6 +96,7 @@ def save_subscriber(email: str) -> Subscriber:
 
         record = Subscriber(email=email)
         db.add(record)
+        print(f"Salvando novo assinante: {email}")
         db.flush()
         return record
 

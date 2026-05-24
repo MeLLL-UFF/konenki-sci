@@ -15,7 +15,7 @@ class Settings(BaseSettings):
 
     # ── Local provider (Ollama / vLLM) ───────────────────
     ollama_base_url:   str = "http://localhost:11434"
-    ollama_model:      str = "mistral"
+    ollama_model:      str = "llama3.2"
     vllm_base_url:     str = "http://localhost:8000"
     vllm_model:        str = "mistral-7b-instruct"
 
@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     # ── Notion (newsletter CMS) ───────────────────────────
     notion_api_key:      str = ""
     notion_database_id:  str = ""
+
+    # ── Database ───────────────────────────────────────
+    db_host:     str = ""
+    db_port:     int = 5432
+    db_name:     str = ""
+    db_user:     str = ""
+    db_password: str = ""
 
     class Config:
         env_file = ".env"

@@ -16,10 +16,7 @@ load_dotenv()
 #    Configure as variáveis no arquivo .env (veja .env.example)
 # ============================================================
 DATABASE_URL = (
-    f"postgresql+psycopg2://"
-    f"{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}"
-    f"@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT', '5432')}"
-    f"/{os.getenv('DB_NAME')}"
+    f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
 )
 
 # ============================================================
@@ -112,7 +109,6 @@ class Article(Base):
     sent         = Column(Boolean, nullable=False, default=False)
     send_count   = Column(Integer, nullable=False, default=0)
 
-    embedding    = relationship("ArticleEmbedding", back_populates="article", uselist=False)
 
 
 class Trend(Base):
