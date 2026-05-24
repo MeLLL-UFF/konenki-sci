@@ -6,14 +6,24 @@ import NewsPost from "./pages/NewsPost";
 import "./index.css";
 
 export default function App() {
-  const [view, setView]         = useState("home");
-  const [selectedSlug, setSlug] = useState(null);
+  const [view, setView] = useState("home");
+  const [selectedId, setSelectedId] = useState(null);
+  const [selectedType, setSelectedType] = useState("article");
 
   if (view === "triagem")
     return <Triagem onBack={() => setView("home")} />;
   if (view === "news")
-    return <News onPost={slug => { setSlug(slug); setView("news-post"); }} onBack={() => setView("home")} />;
+    return (
+      <News
+        onOpen={(type, id) => {
+          setSelectedType(type);
+          setSelectedId(id);
+          setView("news-post");
+        }}
+        onBack={() => setView("home")}
+      />
+    );
   if (view === "news-post")
-    return <NewsPost slug={selectedSlug} onBack={() => setView("news")} />;
+    return <NewsPost type={selectedType} id={selectedId} onBack={() => setView("news")} />;
   return <Home onTriagem={() => setView("triagem")} onNews={() => setView("news")} />;
 }

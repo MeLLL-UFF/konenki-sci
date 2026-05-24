@@ -1,4 +1,8 @@
-from pydantic_settings import BaseSettings
+try:
+    from pydantic_settings import BaseSettings
+except ImportError:
+    from pydantic import BaseSettings
+
 from functools import lru_cache
 
 class Settings(BaseSettings):
@@ -15,7 +19,7 @@ class Settings(BaseSettings):
 
     # ── Local provider (Ollama / vLLM) ───────────────────
     ollama_base_url:   str = "http://localhost:11434"
-    ollama_model:      str = "llama3.2"
+    ollama_model:      str = "mistral"
     vllm_base_url:     str = "http://localhost:8000"
     vllm_model:        str = "mistral-7b-instruct"
 

@@ -7,7 +7,7 @@ from db_connection import FetchType
 NEWS_API_URL = "https://newsapi.org/v2/everything"
 
 
-async def search_trends(query: str, language: str = "pt", max_results: int = 10) -> List[str]:
+async def fetch_trends(query: str, language: str = "pt", max_results: int = 10) -> List[dict]:
     settings = get_settings()
 
     if not settings.news_api_key:
@@ -31,12 +31,19 @@ async def search_trends(query: str, language: str = "pt", max_results: int = 10)
         data = r.json()
 
     articles = data.get("articles", [])
-    titles = [
-        article.get("title", "").strip()
+    return [
+        {
+            "keyword": article.get("title", "").strip(),
+            "content": (article.get("description") or article.get("content") or "").strip(),
+        }
         for article in articles
-        if article.get("title")
+        if article.get("title", "").strip()
     ][:max_results]
 
-    save_trends(titles, source="newsapi")  # persiste trends no banco
-    record_fetch_log(FetchType.trends, new_items=len(titles))
-    return titles
+
+async def search_trends(query: str, language: str = "pt", max_results: int = 10) -> List[str]:
+    items = await fetch_trends(query, language=language, max_results=max_results)
+    keywords = [item["keyword"] for item in items]
+    save_trends(keywords, source="newsapi")
+    record_fetch_log(FetchType.trends, new_items=len(keywords))
+    return keywords

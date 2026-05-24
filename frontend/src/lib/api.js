@@ -22,8 +22,8 @@ export async function fetchNewsPost(slug) {
   return res.json();
 }
 
-export async function fetchTrends() {
-  const res = await fetch(`${BASE}/news/trends`);
+export async function fetchNewsTrend(id) {
+  const res = await fetch(`${BASE}/news/trends/${id}`);
   if (!res.ok) throw new Error(`API error ${res.status}`);
   return res.json();
 }

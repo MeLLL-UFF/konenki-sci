@@ -90,12 +90,9 @@ async def fetch_abstracts(ids: List[str]) -> List[Article]:
         articles.append(Article(
             pmid    = txt(".//PMID"),
             title   = txt(".//ArticleTitle"),
-            abstract= abstract[:700],
+            abstract= abstract,
             year    = txt(".//PubDate/Year"),
             journal = txt(".//Journal/Title"),
         ))
 
-    for article in articles:
-        save_pubmed_article(article)  # persiste artigo no banco usando pubmed_id único
-    record_fetch_log(FetchType.articles, new_items=len(articles))
     return articles

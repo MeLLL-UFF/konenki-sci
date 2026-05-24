@@ -32,9 +32,8 @@ def _article_to_post(article: Article) -> dict:
 
 def list_posts() -> list[dict]:
     """
-    Retorna todos os posts/artigos ordenados do mais recente ao mais antigo.
-    Antes: lia arquivos .md de POSTS_DIR.
-    Agora:  consulta a tabela articles ordenada por created_at DESC.
+    Retorna apenas as edições de newsletter salvas no banco, ordenadas do mais recente ao mais antigo.
+    Filtra artigos que já possuem created_at, que é o campo preenchido no app.
     """
     with get_db() as db:
         result = db.execute(

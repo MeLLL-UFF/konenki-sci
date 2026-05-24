@@ -33,7 +33,7 @@ engine = create_engine(
 # ============================================================
 # 3. SESSION  (use para todas as operações ORM)
 # ============================================================
-SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False, expire_on_commit=False)
 
 @contextmanager
 def get_db():
@@ -117,6 +117,8 @@ class Trend(Base):
     id         = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     source     = Column(String(100), nullable=False)
     keyword    = Column(String(255), nullable=False)
+    summary    = Column(Text)
+    content    = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     sent       = Column(Boolean, nullable=False, default=False)
     send_count = Column(Integer, nullable=False, default=0)

@@ -1,41 +1,72 @@
+from uuid import UUID
+
 from fastapi import APIRouter, HTTPException
-from app.services import notion, posts
+from app.services import posts
+from app.services.db_store import (
+    get_recent_trends,
+    list_saved_articles,
+    list_saved_trends,
+    get_trend_by_id,
+)
 from app.services.newsletter import generate_newsletter
-from app.services.pubmed import fetch_recent_topics
+from populate_database import populate_database
 
 router = APIRouter()
 
 
 @router.get("/news")
-async def list_news():
-    local_posts = posts.list_posts()
-    remote = await notion.list_published()
-    seen: set = set()
-    items = []
-    for p in local_posts + remote:
-        if p["slug"] not in seen:
-            seen.add(p["slug"])
-            items.append(p)
-
-    if not items:
-        try:
-            data = await generate_newsletter()
-            slug = posts.save_post(data["title"], data["excerpt"], data["body"])
-            items = posts.list_posts()
-        except Exception:
-            pass
-
-    return {"posts": items}
+def list_news():
+    articles = [
+        {
+            "id": a.id.hex,
+            "slug": a.pubmed_id,
+            "title": a.title,
+            "summary": a.summary or "",
+            "date": a.published_at.date().isoformat() if a.published_at else None,
+        }
+        for a in list_saved_articles(max_results=100)
+    ]
+    trends = [
+        {
+            "id": t.id.hex,
+            "keyword": t.keyword,
+            "summary": t.summary or "",
+            "source": t.source,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+        }
+        for t in list_saved_trends(max_results=100)
+    ]
+    return {"articles": articles, "trends": trends}
 
 
 @router.get("/news/trends")
-async def get_trends():
-    articles = await fetch_recent_topics(days=30, max_results=8)
+def get_trends():
+    trends = get_recent_trends(max_results=8)
     return {
         "topics": [
-            {"pmid": a.pmid, "title": a.title, "journal": a.journal, "year": a.year}
-            for a in articles
+            {
+                "keyword": t.keyword,
+                "summary": t.summary,
+                "source": t.source,
+                "created_at": t.created_at.isoformat() if t.created_at else None,
+            }
+            for t in trends
         ]
+    }
+
+
+@router.get("/news/trends/{trend_id}")
+def get_trend(trend_id: UUID):
+    trend = get_trend_by_id(trend_id)
+    if trend is None:
+        raise HTTPException(status_code=404, detail="Trend não encontrada")
+    return {
+        "id": trend.id.hex,
+        "keyword": trend.keyword,
+        "summary": trend.summary,
+        "content": trend.content,
+        "source": trend.source,
+        "created_at": trend.created_at.isoformat() if trend.created_at else None,
     }
 
 
@@ -49,9 +80,32 @@ async def generate_post():
     return {"slug": slug, "title": data["title"]}
 
 
+@router.get("/news/populate")
+async def populate_news(
+    pubmed_days: int = 30,
+    pubmed_max_results: int = 8,
+    trends_query: str = "menopause",
+    trends_max_results: int = 10,
+):
+    try:
+        result = await populate_database(
+            pubmed_days=pubmed_days,
+            pubmed_max_results=pubmed_max_results,
+            trends_query=trends_query,
+            trends_max_results=trends_max_results,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {
+        "message": "Base de dados sincronizada.",
+        "result": result,
+    }
+
+
 @router.get("/news/{slug}")
 async def get_post(slug: str):
-    post = posts.get_post(slug) or await notion.get_post(slug)
+    post = posts.get_post(slug)
     if not post:
         raise HTTPException(status_code=404, detail="Edição não encontrada")
     return post

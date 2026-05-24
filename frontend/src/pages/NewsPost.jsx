@@ -1,22 +1,27 @@
 import { useState, useEffect } from "react";
-import { fetchNewsPost } from "../lib/api";
+import { fetchNewsPost, fetchNewsTrend } from "../lib/api";
 
 function formatDate(iso) {
   if (!iso) return "";
   return new Date(iso).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" });
 }
 
-export default function NewsPost({ slug, onBack }) {
-  const [post, setPost]       = useState(null);
+export default function NewsPost({ type, id, onBack }) {
+  const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetchNewsPost(slug)
+    setLoading(true);
+    setError(null);
+    setPost(null);
+
+    const fetcher = type === "trend" ? fetchNewsTrend : fetchNewsPost;
+    fetcher(id)
       .then(setPost)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [type, id]);
 
   return (
     <div className="page">
@@ -29,7 +34,7 @@ export default function NewsPost({ slug, onBack }) {
       </header>
 
       <main className="main news-post-main">
-        {loading && <p className="news-loading">Carregando edição…</p>}
+        {loading && <p className="news-loading">Carregando item…</p>}
         {error && <p className="error">Erro: {error}</p>}
         {post && (
           <article className="news-article">
@@ -37,11 +42,17 @@ export default function NewsPost({ slug, onBack }) {
               <h1 className="article-title">{post.title}</h1>
               {post.date && <p className="article-date">{formatDate(post.date)}</p>}
               {post.excerpt && <p className="article-excerpt">{post.excerpt}</p>}
+              {type === "trend" && post.source && (
+                <p className="article-excerpt">Fonte: {post.source}</p>
+              )}
             </header>
-            <div
-              className="article-body"
-              dangerouslySetInnerHTML={{ __html: post.html }}
-            />
+            <div className="article-body">
+              {type === "trend" ? (
+                <p>{post.content || post.summary}</p>
+              ) : (
+                <div dangerouslySetInnerHTML={{ __html: post.html }} />
+              )}
+            </div>
           </article>
         )}
         <p className="disclaimer" style={{ marginTop: "2rem" }}>
