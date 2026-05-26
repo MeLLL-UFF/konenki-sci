@@ -33,6 +33,8 @@ def save_pubmed_article(article_data: object) -> ArticleModel:
             existing.title = article_data.title
             existing.content = article_data.abstract
             existing.summary = extract_summary(article_data.abstract)
+            existing.published_by = getattr(article_data, "authors", None) or None
+            existing.published_at = getattr(article_data, "pub_date", None)
             return existing
 
         record = ArticleModel(
@@ -40,6 +42,8 @@ def save_pubmed_article(article_data: object) -> ArticleModel:
             title=article_data.title,
             content=article_data.abstract,
             summary=extract_summary(article_data.abstract),
+            published_by=getattr(article_data, "authors", None) or None,
+            published_at=getattr(article_data, "pub_date", None),
         )
         db.add(record)
         print(f"Salvando artigo PubMed ID {article_data.pmid} - {article_data.title}")
@@ -83,7 +87,7 @@ def list_saved_articles(max_results: int = 50) -> List[ArticleModel]:
     with get_db() as db:
         result = db.execute(
             select(ArticleModel)
-            .order_by(desc(ArticleModel.created_at))
+            .order_by(desc(ArticleModel.published_at), desc(ArticleModel.created_at))
             .limit(max_results)
         )
         return result.scalars().all()
@@ -113,7 +117,7 @@ def get_recent_articles(days: int = 30, max_results: int = 8) -> List[ArticleMod
         result = db.execute(
             select(ArticleModel)
             .where(ArticleModel.created_at >= cutoff)
-            .order_by(desc(ArticleModel.created_at))
+            .order_by(desc(ArticleModel.published_at), desc(ArticleModel.created_at))
             .limit(max_results)
         )
         return result.scalars().all()

@@ -193,9 +193,12 @@ textarea:focus { border-color: #c05c7e; }
 .home-entries .triagem-entry { margin: 0; max-width: 100%; }
 
 /* ── News list page ──────────────────────────────────────────────── */
-.news-main { gap: 1.5rem; }
-.section-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: #999; text-transform: uppercase; margin-bottom: 0.75rem; }
-.news-loading, .news-empty { font-size: 0.9rem; color: #999; }
+.news-main { gap: 2.5rem; }
+.news-container { max-width: 1000px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem; }
+.section-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1rem; }
+.section-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: #999; text-transform: uppercase; }
+.section-count { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; color: #999; text-transform: uppercase; }
+.news-loading, .news-empty { font-size: 1rem; color: #999; }
 
 .trends-section { background: #fff; border: 1px solid #e8d9cf; border-radius: 1rem; padding: 1rem 1.25rem; }
 .trends-list { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -204,20 +207,27 @@ textarea:focus { border-color: #c05c7e; }
 .trend-title { font-size: 0.85rem; color: #333; line-height: 1.4; }
 .trend-meta  { font-size: 0.75rem; color: #999; font-style: italic; }
 
-.posts-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.posts-list { display: flex; flex-direction: column; gap: 0; width: 100%; }
+.posts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; width: 100%; }
 .post-card {
-  background: #fff; border: 1px solid #e8d9cf; border-radius: 1rem;
-  padding: 1rem 1.25rem; cursor: pointer; text-align: left; width: 100%;
-  display: flex; flex-direction: column; gap: 0.5rem;
+  background: #fff; border: 1px solid #e8d9cf; border-radius: 0.65rem;
+  padding: 1rem 1rem; cursor: pointer; text-align: left; width: 100%;
+  height: 100px; overflow: hidden;
+  display: flex; flex-direction: column; gap: 0.5rem; justify-content: center;
+  margin: 3px 0;
   transition: background 0.15s, box-shadow 0.15s;
 }
 .post-card:hover { background: #fdf6f0; box-shadow: 0 2px 8px rgba(192,92,126,0.1); }
-.post-card-body { display: flex; flex-direction: column; gap: 0.25rem; }
-.post-title   { font-size: 1rem; font-weight: 600; color: #1a1a1a; }
+.post-card-body { display: flex; flex-direction: column; gap: 0.25rem; overflow: hidden; }
+.post-title {
+  font-size: 1rem; font-weight: 600; color: #292828;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-clamp: 2; overflow: hidden;
+}
 .post-excerpt { font-size: 0.85rem; color: #666; line-height: 1.4; }
 .post-card-footer { display: flex; justify-content: space-between; align-items: center; }
 .post-date  { font-size: 0.75rem; color: #999; }
 .post-arrow { color: #c05c7e; font-size: 1rem; }
+.post-meta  { font-size: 0.75rem; color: #999; margin-top: 0.1rem; }
 
 /* ── News post page ──────────────────────────────────────────────── */
 .news-post-main { max-width: 680px; margin: 0 auto; width: 100%; }
@@ -240,3 +250,30 @@ textarea:focus { border-color: #c05c7e; }
 .article-body a { color: #c05c7e; }
 .article-body strong { font-weight: 700; }
 .article-body code { background: #f5f0ee; border-radius: 0.25rem; padding: 0.1rem 0.35rem; font-size: 0.85em; }
+
+/* ── Newsletter subscribe box ────────────────────────────────────── */
+.subscribe-box {
+  background: #fff; border: 1px solid #e8d9cf; border-radius: 1rem;
+  padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 0.6rem;
+}
+.subscribe-box-header { display: flex; align-items: center; gap: 0.5rem; }
+.subscribe-icon { width: 1.1rem; height: 1.1rem; color: #c05c7e; flex-shrink: 0; }
+.subscribe-title { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; color: #1a1a1a; }
+.subscribe-subtitle { font-size: 0.85rem; color: #666; line-height: 1.4; }
+.subscribe-form { display: flex; gap: 0.5rem; }
+.subscribe-input {
+  flex: 1; border: 1px solid #e0ccc5; border-radius: 0.6rem;
+  padding: 0.55rem 0.9rem; font-size: 0.9rem; font-family: inherit;
+  background: #fdf6f0; outline: none; color: #1a1a1a;
+}
+.subscribe-input:focus { border-color: #c05c7e; }
+.subscribe-input:disabled { opacity: 0.6; }
+.subscribe-btn {
+  background: #c05c7e; color: #fff; border: none; border-radius: 0.6rem;
+  padding: 0.55rem 1.1rem; font-size: 0.9rem; font-family: inherit;
+  cursor: pointer; white-space: nowrap; transition: background 0.15s;
+}
+.subscribe-btn:hover:not(:disabled) { background: #a84d6c; }
+.subscribe-btn:disabled { background: #ddd; cursor: default; }
+.subscribe-success { font-size: 0.85rem; color: #2e7d32; }
+.subscribe-error   { font-size: 0.82rem; color: #c0392b; }

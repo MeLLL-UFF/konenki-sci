@@ -40,6 +40,15 @@ class Settings(BaseSettings):
     db_user:     str = ""
     db_password: str = ""
 
+    # ── Database ───────────────────────────────────────
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = ""
+
+    # ── Outros ───────────────────────────────────────────
+    site_url: str = ""
     class Config:
         env_file = ".env"
 

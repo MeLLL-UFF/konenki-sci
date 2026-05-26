@@ -104,6 +104,7 @@ class Article(Base):
     title        = Column(Text, nullable=False)
     content      = Column(Text)
     summary      = Column(Text)
+    published_by = Column(Text)
     published_at = Column(DateTime(timezone=True))
     created_at   = Column(DateTime(timezone=True), server_default=func.now())
     sent         = Column(Boolean, nullable=False, default=False)

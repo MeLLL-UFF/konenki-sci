@@ -1,17 +1,33 @@
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
 from app.services import posts
 from app.services.db_store import (
     get_recent_trends,
     list_saved_articles,
     list_saved_trends,
     get_trend_by_id,
+    save_subscriber,
 )
 from app.services.newsletter import generate_newsletter
 from populate_database import populate_database
+from send_newsletter import main as run_send_newsletter
 
 router = APIRouter()
+
+
+class SubscribeRequest(BaseModel):
+    email: str
+
+
+@router.post("/news/subscribe", status_code=201)
+def subscribe(body: SubscribeRequest):
+    email = body.email.strip().lower()
+    if not email or "@" not in email:
+        raise HTTPException(status_code=422, detail="Email inválido")
+    save_subscriber(email)
+    return {"message": "Inscrição realizada com sucesso"}
 
 
 @router.get("/news")
@@ -22,6 +38,7 @@ def list_news():
             "slug": a.pubmed_id,
             "title": a.title,
             "summary": a.summary or "",
+            "author": a.published_by or "",
             "date": a.published_at.date().isoformat() if a.published_at else None,
         }
         for a in list_saved_articles(max_results=100)
@@ -78,6 +95,15 @@ async def generate_post():
         raise HTTPException(status_code=503, detail=str(e))
     slug = posts.save_post(data["title"], data["excerpt"], data["body"])
     return {"slug": slug, "title": data["title"]}
+
+
+@router.get("/news/send-newsletter")
+def send_newsletter():
+    try:
+        run_send_newsletter()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    return {"message": "Newsletter enviada com sucesso"}
 
 
 @router.get("/news/populate")

@@ -22,6 +22,19 @@ export async function fetchNewsPost(slug) {
   return res.json();
 }
 
+export async function subscribeNewsletter(email) {
+  const res = await fetch(`${BASE}/news/subscribe`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || `API error ${res.status}`);
+  }
+  return res.json();
+}
+
 export async function fetchNewsTrend(id) {
   const res = await fetch(`${BASE}/news/trends/${id}`);
   if (!res.ok) throw new Error(`API error ${res.status}`);

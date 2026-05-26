@@ -29,6 +29,8 @@ def sync_pubmed_articles(articles: List[object]) -> tuple[int, int, int]:
                     existing.title = title
                     existing.content = content
                     existing.summary = summary
+                    existing.published_by = article.authors or None
+                    existing.published_at = article.pub_date
                     updated_items += 1
                 else:
                     unchanged_items += 1
@@ -39,6 +41,8 @@ def sync_pubmed_articles(articles: List[object]) -> tuple[int, int, int]:
                         title=title,
                         content=content,
                         summary=summary,
+                        published_by=article.authors or None,
+                        published_at=article.pub_date,
                     )
                 )
                 new_items += 1
