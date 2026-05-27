@@ -207,6 +207,13 @@ textarea:focus { border-color: #c05c7e; }
 .trend-title { font-size: 0.85rem; color: #333; line-height: 1.4; }
 .trend-meta  { font-size: 0.75rem; color: #999; font-style: italic; }
 
+.hashtags-wrap { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.hashtag {
+  background: #f5eef2; border: 1px solid #e4cdd8; border-radius: 999px;
+  padding: 0.25rem 0.75rem; font-size: 0.8rem; color: #a05070;
+  line-height: 1.4; user-select: none;
+}
+
 .posts-list { display: flex; flex-direction: column; gap: 0; width: 100%; }
 .posts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; width: 100%; }
 .post-card {

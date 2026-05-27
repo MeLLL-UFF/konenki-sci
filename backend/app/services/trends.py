@@ -33,8 +33,9 @@ async def fetch_trends(query: str, language: str = "pt", max_results: int = 10) 
     articles = data.get("articles", [])
     return [
         {
-            "keyword": article.get("title", "").strip(),
-            "content": (article.get("description") or article.get("content") or "").strip(),
+            "keyword":   article.get("title", "").strip(),
+            "content":   (article.get("description") or article.get("content") or "").strip(),
+            "publisher": (article.get("source") or {}).get("name", "").strip() or None,
         }
         for article in articles
         if article.get("title", "").strip()

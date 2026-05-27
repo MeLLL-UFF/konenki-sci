@@ -133,20 +133,11 @@ export default function News({ onOpen, onBack }) {
             {!loading && trends.length === 0 && !error && (
               <p className="news-empty">Nenhuma notícia salva ainda.</p>
             )}
-            <div className="posts-grid">
+            <div className="hashtags-wrap">
               {trends.map(trend => (
-                <button
-                  key={trend.id}
-                  className="post-card"
-                  onClick={() => onOpen("trend", trend.id)}
-                >
-                  <div className="post-card-body">
-                    <span className="post-title">{trend.keyword}</span>
-                  </div>
-                  <div className="post-card-footer">
-                    {trend.source && <span className="post-date">{trend.source}</span>}
-                  </div>
-                </button>
+                <span key={trend.id} className="hashtag">
+                  #{trend.keyword}
+                </span>
               ))}
             </div>
           </section>

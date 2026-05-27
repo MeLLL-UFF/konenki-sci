@@ -65,8 +65,9 @@ def sync_trends(items: List[dict], source: str = "newsapi") -> tuple[int, int, i
                 continue
             seen.add(keyword)
 
+            item_source = item.get("publisher") or source
             summary = extract_summary(content) if content else extract_summary(keyword)
-            existing = db.scalar(select(TrendModel).filter_by(keyword=keyword, source=source))
+            existing = db.scalar(select(TrendModel).filter_by(keyword=keyword, source=item_source))
 
             if existing:
                 if not existing.content and content:
@@ -78,7 +79,7 @@ def sync_trends(items: List[dict], source: str = "newsapi") -> tuple[int, int, i
             else:
                 db.add(
                     TrendModel(
-                        source=source,
+                        source=item_source,
                         keyword=keyword,
                         content=content or None,
                         summary=summary,
