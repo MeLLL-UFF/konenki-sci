@@ -10,6 +10,37 @@ export async function ask({ question, plainLanguage }) {
   return res.json();
 }
 
+export async function fetchNews() {
+  const res = await fetch(`${BASE}/news`);
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
+}
+
+export async function fetchNewsPost(slug) {
+  const res = await fetch(`${BASE}/news/${slug}`);
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
+}
+
+export async function subscribeNewsletter(email) {
+  const res = await fetch(`${BASE}/news/subscribe`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || `API error ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function fetchNewsTrend(id) {
+  const res = await fetch(`${BASE}/news/trends/${id}`);
+  if (!res.ok) throw new Error(`API error ${res.status}`);
+  return res.json();
+}
+
 export async function askStream({ question, plainLanguage, onStep, onResult }) {
   const res = await fetch(`${BASE}/ask/stream`, {
     method: "POST",
@@ -30,6 +61,7 @@ export async function askStream({ question, plainLanguage, onStep, onResult }) {
       const event = JSON.parse(line.slice(6));
       if (event.type === "step")   onStep?.(event.message);
       if (event.type === "result") onResult?.(event);
+      if (event.type === "error")  throw new Error(event.message);
     }
   }
 }

@@ -1,6 +1,6 @@
 export default function RefCard({ article, index }) {
   return (
-    
+    <a
       href={`https://pubmed.ncbi.nlm.nih.gov/${article.pmid}/`}
       target="_blank"
       rel="noopener noreferrer"
