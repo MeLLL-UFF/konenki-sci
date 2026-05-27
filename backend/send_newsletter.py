@@ -4,24 +4,21 @@ Execute a partir da pasta backend: python send_newsletter.py
 Agende via cron: 0 8 * * 1  cd /caminho/backend && python send_newsletter.py
 """
 import os
-import smtplib
 import sys
 from datetime import datetime, timedelta
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from pathlib import Path
 
+import resend
 from dotenv import load_dotenv
 from sqlalchemy import select
 
 load_dotenv(Path(__file__).parent / ".env")
 
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-SMTP_FROM = os.getenv("SMTP_FROM", SMTP_USER)
-SITE_URL = os.getenv("SITE_URL", "http://localhost:5173")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+EMAIL_FROM     = os.getenv("EMAIL_FROM", "newsletter.id.uff.br")
+SITE_URL       = os.getenv("SITE_URL", "https://konenki-sci.vercel.app")
+
+resend.api_key = RESEND_API_KEY
 
 # Importa após load_dotenv para que db_connection leia o .env corretamente
 from db_connection import Article as ArticleModel, Subscriber, Trend as TrendModel, get_db
@@ -150,24 +147,19 @@ def build_html(articles, trends) -> str:
 # ── Envio ─────────────────────────────────────────────────────────────────────
 
 def send_email(to_email: str, subject: str, html_body: str):
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"]    = SMTP_FROM
-    msg["To"]      = to_email
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
-
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
-        smtp.ehlo()
-        smtp.starttls()
-        smtp.login(SMTP_USER, SMTP_PASSWORD)
-        smtp.send_message(msg)
+    resend.Emails.send({
+        "from": EMAIL_FROM,
+        "to": [to_email],
+        "subject": subject,
+        "html": html_body,
+    })
 
 
 # ── Ponto de entrada ──────────────────────────────────────────────────────────
 
 def main():
-    if not SMTP_USER or not SMTP_PASSWORD:
-        print("SMTP_USER ou SMTP_PASSWORD não configurados no .env — abortando.")
+    if not RESEND_API_KEY:
+        print("RESEND_API_KEY não configurada — abortando.")
         sys.exit(1)
 
     print("Verificando assinantes ativos…")
