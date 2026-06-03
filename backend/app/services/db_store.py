@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Iterable, List
+from typing import Iterable, List, Optional
 
 from sqlalchemy import select, func, desc
 
@@ -104,7 +104,7 @@ def list_saved_trends(max_results: int = 50) -> List[TrendModel]:
         return result.scalars().all()
 
 
-def get_trend_by_id(trend_id: str) -> TrendModel | None:
+def get_trend_by_id(trend_id: str) -> Optional[TrendModel]:
     """Retorna uma trend por ID."""
     with get_db() as db:
         return db.scalar(select(TrendModel).where(TrendModel.id == trend_id))
@@ -123,7 +123,7 @@ def get_recent_articles(days: int = 30, max_results: int = 8) -> List[ArticleMod
         return result.scalars().all()
 
 
-def get_recent_trends(max_results: int = 10, source: str | None = None) -> List[TrendModel]:
+def get_recent_trends(max_results: int = 10, source: Optional[str] = None) -> List[TrendModel]:
     """Retorna trends salvas no banco ordenadas pelo mais recente."""
     with get_db() as db:
         query = select(TrendModel)
@@ -139,7 +139,7 @@ def record_fetch_log(
     fetch_type: FetchType,
     new_items: int,
     status: FetchStatus = FetchStatus.success,
-    error_log: str | None = None,
+    error_log: Optional[str] = None,
 ) -> FetchLog:
     """Registra o histórico de fetchs no banco."""
     with get_db() as db:

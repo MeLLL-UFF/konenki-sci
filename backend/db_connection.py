@@ -7,7 +7,8 @@ import os
 from contextlib import contextmanager
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
-from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
 
 load_dotenv()
 
@@ -54,8 +55,7 @@ def get_db():
 # ============================================================
 # 4. BASE ORM  (todas as models herdam daqui)
 # ============================================================
-class Base(DeclarativeBase):
-    pass
+Base = declarative_base()
 
 # ============================================================
 # 5. MODELS  (espelham as tabelas do schema.sql)

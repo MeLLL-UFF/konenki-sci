@@ -1,6 +1,7 @@
 import re
 import markdown as md
 from datetime import date, datetime
+from typing import Optional
 from sqlalchemy import select, desc
 from db_connection import get_db, Article
 
@@ -43,7 +44,7 @@ def list_posts() -> list[dict]:
         return [_article_to_post(a) for a in articles]
 
 
-def get_post(slug: str) -> dict | None:
+def get_post(slug: str) -> Optional[dict]:
     """
     Busca um post pelo slug (mapeado para pubmed_id).
     Antes: varria arquivos .md comparando o frontmatter slug.
@@ -63,7 +64,7 @@ def get_post(slug: str) -> dict | None:
         return post
 
 
-def save_post(title: str, excerpt: str, body: str, slug: str | None = None) -> str:
+def save_post(title: str, excerpt: str, body: str, slug: Optional[str] = None) -> str:
     """
     Cria ou atualiza um post/artigo no banco.
     Antes: gravava arquivo .md em POSTS_DIR.

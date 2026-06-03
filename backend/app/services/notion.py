@@ -1,5 +1,5 @@
 import httpx
-from typing import Any
+from typing import Any, Optional
 from app.config import get_settings
 
 settings = get_settings()
@@ -122,7 +122,7 @@ async def list_published() -> list[dict]:
     return posts
 
 
-async def get_post(slug: str) -> dict | None:
+async def get_post(slug: str) -> Optional[dict]:
     posts = await list_published()
     match = next((p for p in posts if p["slug"] == slug), None)
     if not match:
