@@ -10,8 +10,10 @@ Retorna:
                     output contém mensagem amigável para a usuária.
 """
 
+from typing import Optional
 from app.agents.base import BaseAgent, AgentResult, StepCallback
 from app.providers import get_llm_provider
+from app.config import get_settings
 
 _SYSTEM_PROMPT = """
 Você é um agente de triagem de uma plataforma de saúde feminina especializada em menopausa
@@ -39,9 +41,10 @@ Regras:
 class GuardrailAgent(BaseAgent):
     """Agente de guarda: valida escopo e adequação da pergunta."""
 
-    def __init__(self, on_step: StepCallback = None):
+    def __init__(self, on_step: StepCallback = None, model: Optional[str] = None):
         super().__init__(on_step)
-        self.llm = get_llm_provider()
+        resolved = model or get_settings().guardrail_model or None
+        self.llm = get_llm_provider(model=resolved)
 
     async def run(self, question: str) -> AgentResult:
         await self._step("Verificando se a pergunta está dentro do escopo…")

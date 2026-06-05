@@ -8,8 +8,10 @@ Ativado apenas quando a usuária solicita linguagem simplificada
 (plain_language=True). Caso contrário, o Orchestrator ignora este agente.
 """
 
+from typing import Optional
 from app.agents.base import BaseAgent, AgentResult, StepCallback
 from app.providers import get_llm_provider
+from app.config import get_settings
 
 _SYSTEM_PROMPT = (
     "Você é uma comunicadora de saúde empática e acolhedora. "
@@ -28,9 +30,10 @@ _SYSTEM_PROMPT = (
 class SimplifierAgent(BaseAgent):
     """Agente de simplificação: adapta a linguagem científica para o público leigo."""
 
-    def __init__(self, on_step: StepCallback = None):
+    def __init__(self, on_step: StepCallback = None, model: Optional[str] = None):
         super().__init__(on_step)
-        self.llm = get_llm_provider()
+        resolved = model or get_settings().simplifier_model or None
+        self.llm = get_llm_provider(model=resolved)
 
     async def run(self, scientific_answer: str) -> AgentResult:
         await self._step("Adaptando resposta para linguagem acessível…")

@@ -12,8 +12,10 @@ Retorna em metadata:
   - articles: lista de objetos Article
 """
 
+from typing import Optional
 from app.agents.base import BaseAgent, AgentResult, StepCallback
 from app.providers import get_llm_provider
+from app.config import get_settings
 from app.services.pubmed import search_pubmed_with_fallback, fetch_abstracts
 
 _QUERY_SYSTEM = (
@@ -34,9 +36,10 @@ _ANSWER_SYSTEM = (
 class RetrievalAgent(BaseAgent):
     """Agente de recuperação: busca evidências no PubMed e sintetiza resposta científica."""
 
-    def __init__(self, on_step: StepCallback = None):
+    def __init__(self, on_step: StepCallback = None, model: Optional[str] = None):
         super().__init__(on_step)
-        self.llm = get_llm_provider()
+        resolved = model or get_settings().retrieval_model or None
+        self.llm = get_llm_provider(model=resolved)
 
     async def run(self, question: str) -> AgentResult:
         # ── Etapa 1: gerar query PubMed ──────────────────────────────────────

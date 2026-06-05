@@ -15,7 +15,13 @@ class Settings(BaseSettings):
     openai_api_key:    str = ""
     gemini_api_key:    str = ""
     maritaca_api_key:  str = ""
-    llm_api_model:     str = "claude-sonnet-4-20250514"  # troque conforme o provider
+    llm_api_model:     str = "claude-sonnet-4-20250514"  # modelo padrão (fallback)
+
+    # ── Modelos por agente (deixe vazio para usar llm_api_model) ────────────
+    # Exemplos de valores: "claude-haiku-4-20250514", "gpt-4o-mini", "gemini-1.5-flash", "sabia-3"
+    guardrail_model:  str = ""   # ex: modelo rápido/barato para triagem
+    retrieval_model:  str = ""   # ex: modelo capaz para síntese científica
+    simplifier_model: str = ""   # ex: modelo criativo para linguagem simples
 
     # ── Local provider (Ollama / vLLM) ───────────────────
     ollama_base_url:   str = "http://localhost:11434"

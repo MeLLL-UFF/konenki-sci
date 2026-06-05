@@ -1,27 +1,43 @@
 import httpx
+from typing import Optional
 from app.providers.base import LLMProvider
 from app.config import get_settings
 
 settings = get_settings()
 
+
 class APIProvider(LLMProvider):
     """
-    Fase 1 — provedores de API cloud.
-    Detecta automaticamente qual chave está configurada.
-    Ordem de prioridade: Anthropic → OpenAI → Gemini
+    Provedores de API cloud: Anthropic, OpenAI, Maritaca (Sabiá) e Google Gemini.
+
+    O modelo pode ser definido:
+      1. Por instância — passado no construtor (prioridade máxima).
+      2. Via settings.llm_api_model — padrão global do .env.
+
+    O provider é detectado automaticamente pelo prefixo do nome do modelo:
+      claude-*  → Anthropic
+      gpt-*     → OpenAI
+      sabia-*/sabiá-* → Maritaca
+      gemini-*  → Google Gemini
     """
 
+    def __init__(self, model: Optional[str] = None):
+        # Usa o modelo passado explicitamente ou cai para o padrão global
+        self.model = model or settings.llm_api_model
+
     async def complete(self, system: str, user: str) -> str:
-        model = settings.llm_api_model or ""
-        if model.startswith("claude") and settings.anthropic_api_key:
+        m = self.model or ""
+
+        if m.startswith("claude") and settings.anthropic_api_key:
             return await self._anthropic(system, user)
-        if model.startswith(("sabia", "sabiá")) and settings.maritaca_api_key:
+        if m.startswith(("sabia", "sabiá")) and settings.maritaca_api_key:
             return await self._maritaca(system, user)
-        if model.startswith("gemini") and settings.gemini_api_key:
+        if m.startswith("gemini") and settings.gemini_api_key:
             return await self._gemini(system, user)
-        if model.startswith("gpt") and settings.openai_api_key:
+        if m.startswith("gpt") and settings.openai_api_key:
             return await self._openai(system, user)
-        # fallback: primeira chave disponível
+
+        # Fallback: primeira chave disponível
         if settings.anthropic_api_key:
             return await self._anthropic(system, user)
         if settings.maritaca_api_key:
@@ -30,9 +46,13 @@ class APIProvider(LLMProvider):
             return await self._gemini(system, user)
         if settings.openai_api_key:
             return await self._openai(system, user)
-        raise ValueError("Nenhuma chave de API configurada. Defina ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY ou MARITACA_API_KEY no .env")
 
-    # ── Anthropic ────────────────────────────────────────
+        raise ValueError(
+            "Nenhuma chave de API configurada. "
+            "Defina ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY ou MARITACA_API_KEY no .env"
+        )
+
+    # ── Anthropic ─────────────────────────────────────────────────────────────
     async def _anthropic(self, system: str, user: str) -> str:
         async with httpx.AsyncClient(timeout=60) as client:
             r = await client.post(
@@ -43,7 +63,7 @@ class APIProvider(LLMProvider):
                     "content-type": "application/json",
                 },
                 json={
-                    "model": settings.llm_api_model,
+                    "model": self.model,
                     "max_tokens": 1024,
                     "system": system,
                     "messages": [{"role": "user", "content": user}],
@@ -53,14 +73,14 @@ class APIProvider(LLMProvider):
             blocks = r.json().get("content", [])
             return "".join(b.get("text", "") for b in blocks)
 
-    # ── OpenAI ───────────────────────────────────────────
+    # ── OpenAI ────────────────────────────────────────────────────────────────
     async def _openai(self, system: str, user: str) -> str:
         async with httpx.AsyncClient(timeout=60) as client:
             r = await client.post(
                 "https://api.openai.com/v1/chat/completions",
                 headers={"Authorization": f"Bearer {settings.openai_api_key}"},
                 json={
-                    "model": settings.llm_api_model,
+                    "model": self.model,
                     "messages": [
                         {"role": "system", "content": system},
                         {"role": "user",   "content": user},
@@ -70,14 +90,14 @@ class APIProvider(LLMProvider):
             r.raise_for_status()
             return r.json()["choices"][0]["message"]["content"]
 
-    # ── Maritaca (Sabiá) ─────────────────────────────────
+    # ── Maritaca (Sabiá) ──────────────────────────────────────────────────────
     async def _maritaca(self, system: str, user: str) -> str:
         async with httpx.AsyncClient(timeout=60) as client:
             r = await client.post(
                 "https://chat.maritaca.ai/api/chat/completions",
                 headers={"Authorization": f"Key {settings.maritaca_api_key}"},
                 json={
-                    "model": settings.llm_api_model or "sabia-3",
+                    "model": self.model or "sabia-3",
                     "messages": [
                         {"role": "system", "content": system},
                         {"role": "user",   "content": user},
@@ -87,9 +107,9 @@ class APIProvider(LLMProvider):
             r.raise_for_status()
             return r.json()["choices"][0]["message"]["content"]
 
-    # ── Google Gemini ────────────────────────────────────
+    # ── Google Gemini ─────────────────────────────────────────────────────────
     async def _gemini(self, system: str, user: str) -> str:
-        model = settings.llm_api_model or "gemini-1.5-flash"
+        model = self.model or "gemini-1.5-flash"
         url = (
             f"https://generativelanguage.googleapis.com/v1beta/models/"
             f"{model}:generateContent?key={settings.gemini_api_key}"
