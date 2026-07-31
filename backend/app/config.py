@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     site_url: str = ""
     class Config:
         env_file = ".env"
+        extra = "ignore"   # ignora variáveis do .env não declaradas aqui (ex.: SMTP_*)
 
 @lru_cache
 def get_settings() -> Settings:
