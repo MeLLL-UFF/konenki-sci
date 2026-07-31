@@ -5,6 +5,7 @@
 
 import os
 from contextlib import contextmanager
+from urllib.parse import quote_plus
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
@@ -14,9 +15,14 @@ load_dotenv()
 # ============================================================
 # 1. STRING DE CONEXÃO
 #    Configure as variáveis no arquivo .env (veja .env.example)
+#    DB_PORT: 5432 por padrão (Supabase: 5432 = session pooler / direto).
+#    DB_SSLMODE: "require" por padrão — o Supabase só aceita conexão SSL.
 # ============================================================
+DB_PORT = os.getenv("DB_PORT", "5432")
+DB_SSLMODE = os.getenv("DB_SSLMODE", "require")
 DATABASE_URL = (
-    f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}"
+    f"postgresql://{os.getenv('DB_USER')}:{quote_plus(os.getenv('DB_PASSWORD') or '')}"
+    f"@{os.getenv('DB_HOST')}:{DB_PORT}/{os.getenv('DB_NAME')}"
 )
 
 # ============================================================
@@ -28,6 +34,7 @@ engine = create_engine(
     max_overflow=10,      # conexões extras em pico
     pool_pre_ping=True,   # verifica se a conexão ainda está viva antes de usar
     echo=False,           # True para logar todas as queries (útil em dev)
+    connect_args={"sslmode": DB_SSLMODE},
 )
 
 # ============================================================
@@ -109,6 +116,8 @@ class Article(Base):
     created_at   = Column(DateTime(timezone=True), server_default=func.now())
     sent         = Column(Boolean, nullable=False, default=False)
     send_count   = Column(Integer, nullable=False, default=0)
+    keywords     = Column(Text)   # palavras-chave (MeSH + LLM), separadas por vírgula
+    hashtags     = Column(Text)   # hashtags derivadas, separadas por espaço
 
 
 
@@ -117,12 +126,14 @@ class Trend(Base):
 
     id         = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     source     = Column(String(100), nullable=False)
-    keyword    = Column(String(255), nullable=False)
+    keyword    = Column(String(255), nullable=False)   # título da notícia (NewsAPI)
     summary    = Column(Text)
     content    = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     sent       = Column(Boolean, nullable=False, default=False)
     send_count = Column(Integer, nullable=False, default=0)
+    keywords   = Column(Text)   # palavras-chave extraídas (LLM), separadas por vírgula
+    hashtags   = Column(Text)   # hashtags derivadas, separadas por espaço
 
 
 

@@ -32,6 +32,7 @@ class Article:
     journal:  str
     authors:  str = ""
     pub_date: Optional[datetime] = None
+    keywords: str = ""   # termos MeSH + keywords de autor (inglês), separados por vírgula
 
 async def search_pubmed(query: str) -> List[str]:
     """Retorna lista de PMIDs para a query."""
@@ -116,6 +117,20 @@ async def fetch_abstracts(ids: List[str]) -> List[Article]:
         if len(author_els) > 3:
             authors_str += " et al."
 
+        # Palavras-chave estruturadas: termos MeSH + keywords dos autores.
+        # Servem de "semente" autoritativa para a extração híbrida (ver services/keywords.py).
+        seen_kw: set[str] = set()
+        kw_list: List[str] = []
+        for el in (
+            art.findall(".//MeshHeadingList/MeshHeading/DescriptorName")
+            + art.findall(".//KeywordList/Keyword")
+        ):
+            term = el.text.strip() if el is not None and el.text else ""
+            if term and term.lower() not in seen_kw:
+                seen_kw.add(term.lower())
+                kw_list.append(term)
+        keywords_str = ", ".join(kw_list)
+
         # Prefere ArticleDate (epub date) sobre PubDate (data do issue da revista)
         article_date_el = art.find(".//ArticleDate[@DateType='Electronic']")
         if article_date_el is not None:
@@ -136,6 +151,7 @@ async def fetch_abstracts(ids: List[str]) -> List[Article]:
             journal  = txt(".//Journal/Title"),
             authors  = authors_str,
             pub_date = pub_date,
+            keywords = keywords_str,
         ))
 
     return articles

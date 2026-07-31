@@ -6,9 +6,34 @@ from sqlalchemy import select
 
 from app.config import get_settings
 from app.services.db_store import extract_summary, record_fetch_log
+from app.services.keywords import generate_keywords_and_hashtags
 from app.services.pubmed import fetch_recent_topics
 from app.services.trends import fetch_trends
 from db_connection import Article as ArticleModel, FetchType, Trend as TrendModel, get_db
+
+
+async def _enrich_articles(articles: List[object]) -> None:
+    """Calcula keywords/hashtags de cada artigo (semente MeSH + LLM) antes de gravar."""
+    for art in articles:
+        seed = [s.strip() for s in (getattr(art, "keywords", "") or "").split(",") if s.strip()]
+        kws, tags = await generate_keywords_and_hashtags(
+            getattr(art, "title", "") or "",
+            getattr(art, "abstract", "") or "",
+            seed_keywords=seed,
+        )
+        art.gen_keywords = ", ".join(kws) or None
+        art.gen_hashtags = " ".join(tags) or None
+
+
+async def _enrich_trends(items: List[dict]) -> None:
+    """Calcula keywords/hashtags de cada notícia (LLM) antes de gravar."""
+    for item in items:
+        kws, tags = await generate_keywords_and_hashtags(
+            item.get("keyword", "") or "",
+            item.get("content", "") or "",
+        )
+        item["keywords"] = ", ".join(kws) or None
+        item["hashtags"] = " ".join(tags) or None
 
 
 def sync_pubmed_articles(articles: List[object]) -> tuple[int, int, int]:
@@ -23,6 +48,8 @@ def sync_pubmed_articles(articles: List[object]) -> tuple[int, int, int]:
             title = (article.title or "").strip()
             content = (article.abstract or "").strip()
             summary = extract_summary(content)
+            kw = getattr(article, "gen_keywords", None)
+            ht = getattr(article, "gen_hashtags", None)
 
             if existing:
                 if (existing.title or "").strip() != title or (existing.content or "").strip() != content:
@@ -31,8 +58,14 @@ def sync_pubmed_articles(articles: List[object]) -> tuple[int, int, int]:
                     existing.summary = summary
                     existing.published_by = article.authors or None
                     existing.published_at = article.pub_date
+                    existing.keywords = kw
+                    existing.hashtags = ht
                     updated_items += 1
                 else:
+                    # Preenche keywords/hashtags em artigos antigos sem alterar o restante.
+                    if kw and not (existing.keywords or "").strip():
+                        existing.keywords = kw
+                        existing.hashtags = ht
                     unchanged_items += 1
             else:
                 db.add(
@@ -43,6 +76,8 @@ def sync_pubmed_articles(articles: List[object]) -> tuple[int, int, int]:
                         summary=summary,
                         published_by=article.authors or None,
                         published_at=article.pub_date,
+                        keywords=kw,
+                        hashtags=ht,
                     )
                 )
                 new_items += 1
@@ -67,14 +102,21 @@ def sync_trends(items: List[dict], source: str = "newsapi") -> tuple[int, int, i
 
             item_source = item.get("publisher") or source
             summary = extract_summary(content) if content else extract_summary(keyword)
+            kw = item.get("keywords")
+            ht = item.get("hashtags")
             existing = db.scalar(select(TrendModel).filter_by(keyword=keyword, source=item_source))
 
             if existing:
                 if not existing.content and content:
                     existing.content = content
                     existing.summary = summary
+                    existing.keywords = kw
+                    existing.hashtags = ht
                     updated_items += 1
                 else:
+                    if kw and not (existing.keywords or "").strip():
+                        existing.keywords = kw
+                        existing.hashtags = ht
                     unchanged_items += 1
             else:
                 db.add(
@@ -83,6 +125,8 @@ def sync_trends(items: List[dict], source: str = "newsapi") -> tuple[int, int, i
                         keyword=keyword,
                         content=content or None,
                         summary=summary,
+                        keywords=kw,
+                        hashtags=ht,
                     )
                 )
                 new_items += 1
@@ -101,10 +145,12 @@ async def populate_database(
         raise RuntimeError("Variáveis de banco de dados não estão configuradas corretamente.")
 
     pubmed_articles = await fetch_recent_topics(days=pubmed_days, max_results=pubmed_max_results)
+    await _enrich_articles(pubmed_articles)
     pubmed_new, pubmed_updated, pubmed_unchanged = sync_pubmed_articles(pubmed_articles)
 
-    news_keywords = await fetch_trends(query=trends_query, max_results=trends_max_results)
-    trends_new, trends_updated, trends_unchanged = sync_trends(news_keywords, source="newsapi")
+    news_items = await fetch_trends(query=trends_query, max_results=trends_max_results)
+    await _enrich_trends(news_items)
+    trends_new, trends_updated, trends_unchanged = sync_trends(news_items, source="newsapi")
 
     record_fetch_log(FetchType.articles, new_items=pubmed_new + pubmed_updated)
     record_fetch_log(FetchType.trends, new_items=trends_new + trends_updated)
