@@ -12,10 +12,16 @@ import resend
 from dotenv import load_dotenv
 from sqlalchemy import select
 
+# Console do Windows usa cp1252 por padrão e quebra nos símbolos ✓/✗ abaixo
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 load_dotenv(Path(__file__).parent / ".env")
 
 RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
-EMAIL_FROM     = os.getenv("EMAIL_FROM", "newsletter.id.uff.br")
+# O Resend só aceita remetente de domínio verificado. Sem domínio próprio,
+# use onboarding@resend.dev — ele entrega apenas para o email dono da conta.
+EMAIL_FROM     = os.getenv("EMAIL_FROM", "MenopausIA <onboarding@resend.dev>")
 SITE_URL       = os.getenv("SITE_URL", "https://konenki-sci.vercel.app")
 
 resend.api_key = RESEND_API_KEY
@@ -147,7 +153,7 @@ def build_html(articles, trends) -> str:
 # ── Envio ─────────────────────────────────────────────────────────────────────
 
 def send_email(to_email: str, subject: str, html_body: str):
-    resend.Emails.send({
+    return resend.Emails.send({
         "from": EMAIL_FROM,
         "to": [to_email],
         "subject": subject,
@@ -162,6 +168,17 @@ def main():
         print("RESEND_API_KEY não configurada — abortando.")
         sys.exit(1)
 
+    # O Resend rejeita com 422 se o remetente não for um endereço válido.
+    # Aceita "email@dominio" ou "Nome <email@dominio>".
+    if "@" not in EMAIL_FROM:
+        print(
+            f"EMAIL_FROM inválido: {EMAIL_FROM!r} — não é um endereço de email.\n"
+            "Use 'MenopausIA <onboarding@resend.dev>' ou um endereço de domínio "
+            "verificado no painel do Resend."
+        )
+        sys.exit(1)
+
+    print(f"Remetente: {EMAIL_FROM}")
     print("Verificando assinantes ativos…")
     subscribers = get_active_subscribers()
     if not subscribers:
@@ -186,11 +203,11 @@ def main():
     sent = errors = 0
     for sub in subscribers:
         try:
-            send_email(sub.email, subject, html)
-            print(f"  ✓ Enviado para {sub.email}")
+            result = send_email(sub.email, subject, html)
+            print(f"  ✓ Enviado para {sub.email} (id: {(result or {}).get('id', '?')})")
             sent += 1
         except Exception as e:
-            print(f"  ✗ Erro ao enviar para {sub.email}: {e}")
+            print(f"  ✗ Erro ao enviar para {sub.email}: {type(e).__name__}: {e}")
             errors += 1
 
     print(f"\nConcluído: {sent} enviado(s), {errors} erro(s).")

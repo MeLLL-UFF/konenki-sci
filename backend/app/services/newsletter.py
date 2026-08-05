@@ -10,7 +10,7 @@ async def generate_newsletter(days: int = 30, max_results: int = 8) -> dict:
     if not articles:
         raise ValueError("Nenhum artigo salvo no banco de dados para gerar a newsletter.")
     if not trends:
-        p("Nenhuma trend salva no banco de dados para gerar a newsletter.")
+        print("Nenhuma trend salva no banco de dados para gerar a newsletter.")
 
     article_lines = []
     for i, a in enumerate(articles):
