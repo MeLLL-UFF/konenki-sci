@@ -17,6 +17,13 @@ from send_newsletter import main as run_send_newsletter
 router = APIRouter()
 
 
+def _split(value: str | None, sep: str = ",") -> list[str]:
+    """Converte a string armazenada (keywords/hashtags) em lista para a API."""
+    if not value:
+        return []
+    return [v.strip() for v in value.split(sep) if v.strip()]
+
+
 class SubscribeRequest(BaseModel):
     email: str
 
@@ -40,6 +47,8 @@ def list_news():
             "summary": a.summary or "",
             "author": a.published_by or "",
             "date": a.published_at.date().isoformat() if a.published_at else None,
+            "keywords": _split(a.keywords),
+            "hashtags": _split(a.hashtags, sep=" "),
         }
         for a in list_saved_articles(max_results=100)
     ]
@@ -50,6 +59,8 @@ def list_news():
             "summary": t.summary or "",
             "source": t.source,
             "created_at": t.created_at.isoformat() if t.created_at else None,
+            "keywords": _split(t.keywords),
+            "hashtags": _split(t.hashtags, sep=" "),
         }
         for t in list_saved_trends(max_results=100)
     ]
@@ -66,6 +77,8 @@ def get_trends():
                 "summary": t.summary,
                 "source": t.source,
                 "created_at": t.created_at.isoformat() if t.created_at else None,
+                "keywords": _split(t.keywords),
+                "hashtags": _split(t.hashtags, sep=" "),
             }
             for t in trends
         ]
@@ -84,6 +97,8 @@ def get_trend(trend_id: UUID):
         "content": trend.content,
         "source": trend.source,
         "created_at": trend.created_at.isoformat() if trend.created_at else None,
+        "keywords": _split(trend.keywords),
+        "hashtags": _split(trend.hashtags, sep=" "),
     }
 
 

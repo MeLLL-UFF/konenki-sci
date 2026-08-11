@@ -4,24 +4,27 @@ Execute a partir da pasta backend: python send_newsletter.py
 Agende via cron: 0 8 * * 1  cd /caminho/backend && python send_newsletter.py
 """
 import os
-import smtplib
 import sys
 from datetime import datetime, timedelta
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from pathlib import Path
 
+import resend
 from dotenv import load_dotenv
 from sqlalchemy import select
 
+# Console do Windows usa cp1252 por padrão e quebra nos símbolos ✓/✗ abaixo
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
 load_dotenv(Path(__file__).parent / ".env")
 
-SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-SMTP_FROM = os.getenv("SMTP_FROM", SMTP_USER)
-SITE_URL = os.getenv("SITE_URL", "http://localhost:5173")
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+# O Resend só aceita remetente de domínio verificado. Sem domínio próprio,
+# use onboarding@resend.dev — ele entrega apenas para o email dono da conta.
+EMAIL_FROM     = os.getenv("EMAIL_FROM", "MenopausIA <onboarding@resend.dev>")
+SITE_URL       = os.getenv("SITE_URL", "https://konenki-sci.vercel.app")
+
+resend.api_key = RESEND_API_KEY
 
 # Importa após load_dotenv para que db_connection leia o .env corretamente
 from db_connection import Article as ArticleModel, Subscriber, Trend as TrendModel, get_db
@@ -150,26 +153,32 @@ def build_html(articles, trends) -> str:
 # ── Envio ─────────────────────────────────────────────────────────────────────
 
 def send_email(to_email: str, subject: str, html_body: str):
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"]    = SMTP_FROM
-    msg["To"]      = to_email
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
-
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as smtp:
-        smtp.ehlo()
-        smtp.starttls()
-        smtp.login(SMTP_USER, SMTP_PASSWORD)
-        smtp.send_message(msg)
+    return resend.Emails.send({
+        "from": EMAIL_FROM,
+        "to": [to_email],
+        "subject": subject,
+        "html": html_body,
+    })
 
 
 # ── Ponto de entrada ──────────────────────────────────────────────────────────
 
 def main():
-    if not SMTP_USER or not SMTP_PASSWORD:
-        print("SMTP_USER ou SMTP_PASSWORD não configurados no .env — abortando.")
+    if not RESEND_API_KEY:
+        print("RESEND_API_KEY não configurada — abortando.")
         sys.exit(1)
 
+    # O Resend rejeita com 422 se o remetente não for um endereço válido.
+    # Aceita "email@dominio" ou "Nome <email@dominio>".
+    if "@" not in EMAIL_FROM:
+        print(
+            f"EMAIL_FROM inválido: {EMAIL_FROM!r} — não é um endereço de email.\n"
+            "Use 'MenopausIA <onboarding@resend.dev>' ou um endereço de domínio "
+            "verificado no painel do Resend."
+        )
+        sys.exit(1)
+
+    print(f"Remetente: {EMAIL_FROM}")
     print("Verificando assinantes ativos…")
     subscribers = get_active_subscribers()
     if not subscribers:
@@ -194,11 +203,11 @@ def main():
     sent = errors = 0
     for sub in subscribers:
         try:
-            send_email(sub.email, subject, html)
-            print(f"  ✓ Enviado para {sub.email}")
+            result = send_email(sub.email, subject, html)
+            print(f"  ✓ Enviado para {sub.email} (id: {(result or {}).get('id', '?')})")
             sent += 1
         except Exception as e:
-            print(f"  ✗ Erro ao enviar para {sub.email}: {e}")
+            print(f"  ✗ Erro ao enviar para {sub.email}: {type(e).__name__}: {e}")
             errors += 1
 
     print(f"\nConcluído: {sent} enviado(s), {errors} erro(s).")
