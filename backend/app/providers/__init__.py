@@ -5,16 +5,23 @@ from app.providers.provider_local import LocalProvider
 from app.providers.base import LLMProvider
 
 
-def get_llm_provider(model: Optional[str] = None) -> LLMProvider:
+def get_llm_provider(
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
+) -> LLMProvider:
     """
     Retorna o provider LLM adequado.
 
     - model: nome do modelo a usar (ex: "claude-haiku-4-20250514", "gpt-4o-mini").
              Se None, usa o padrão definido em llm_api_model / ollama_model do .env.
+    - api_key: chave enviada pelo modo desenvolvedor. Vale apenas para esta
+               instância e força o provider de API, mesmo que LLM_PROVIDER=local.
 
     O tipo de provider (api vs local) continua sendo controlado por LLM_PROVIDER no .env.
     """
     settings = get_settings()
+    if api_key:
+        return APIProvider(model=model, api_key=api_key)
     if settings.llm_provider == "local":
         return LocalProvider(model=model)
     return APIProvider(model=model)

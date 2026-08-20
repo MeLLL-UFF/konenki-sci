@@ -47,6 +47,7 @@ class OrchestratorAgent:
         guardrail_model: Optional[str] = None,
         retrieval_model: Optional[str] = None,
         simplifier_model: Optional[str] = None,
+        api_key: Optional[str] = None,
     ):
         self.on_step = on_step
         settings = get_settings()
@@ -54,6 +55,14 @@ class OrchestratorAgent:
         self.guardrail_model  = guardrail_model  or settings.guardrail_model  or None
         self.retrieval_model  = retrieval_model  or settings.retrieval_model  or None
         self.simplifier_model = simplifier_model or settings.simplifier_model or None
+        # Chave do modo desenvolvedor: vale só para esta requisição.
+        # Com ela, os três agentes usam o mesmo modelo — os *_model do .env
+        # apontam para outro vendor e não funcionariam com esta chave.
+        self.api_key = api_key or None
+        if self.api_key:
+            self.guardrail_model = self.retrieval_model = self.simplifier_model = (
+                guardrail_model or retrieval_model or simplifier_model
+            )
 
     async def run(
         self,
@@ -62,7 +71,7 @@ class OrchestratorAgent:
     ) -> OrchestratorResult:
 
         # ── 1. Guardrail ──────────────────────────────────────────────────────
-        guardrail = GuardrailAgent(on_step=self.on_step, model=self.guardrail_model)
+        guardrail = GuardrailAgent(on_step=self.on_step, model=self.guardrail_model, api_key=self.api_key)
         guard_result = await guardrail.run(question=question)
 
         if not guard_result.success:
@@ -74,7 +83,7 @@ class OrchestratorAgent:
             )
 
         # ── 2. Retrieval ──────────────────────────────────────────────────────
-        retrieval = RetrievalAgent(on_step=self.on_step, model=self.retrieval_model)
+        retrieval = RetrievalAgent(on_step=self.on_step, model=self.retrieval_model, api_key=self.api_key)
         ret_result = await retrieval.run(question=question)
 
         if not ret_result.success:
@@ -90,7 +99,7 @@ class OrchestratorAgent:
 
         # ── 3. Simplifier (opcional) ──────────────────────────────────────────
         if plain_language:
-            simplifier = SimplifierAgent(on_step=self.on_step, model=self.simplifier_model)
+            simplifier = SimplifierAgent(on_step=self.on_step, model=self.simplifier_model, api_key=self.api_key)
             simp_result = await simplifier.run(scientific_answer=answer)
             if simp_result.success:
                 answer = simp_result.output

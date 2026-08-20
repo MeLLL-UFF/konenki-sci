@@ -284,3 +284,97 @@ textarea:focus { border-color: #c05c7e; }
 .subscribe-btn:disabled { background: #ddd; cursor: default; }
 .subscribe-success { font-size: 0.85rem; color: #2e7d32; }
 .subscribe-error   { font-size: 0.82rem; color: #c0392b; }
+
+/* ── Modal do modo desenvolvedor ─────────────────────────────────────────── */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 26, 26, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 100;
+}
+
+.modal {
+  background: #fff;
+  border: 1px solid #e8d9cf;
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.modal-title { font-size: 1.1rem; margin-bottom: 0.5rem; }
+.modal-text  { font-size: 0.9rem; color: #666; line-height: 1.5; margin-bottom: 1rem; }
+.modal-text code {
+  background: #fdf6f0;
+  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.85em;
+}
+
+.modal-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.modal-input {
+  width: 100%;
+  border: 1px solid #e0ccc5;
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  margin-bottom: 0.75rem;
+}
+.modal-input:focus { outline: 2px solid #c05c7e; outline-offset: -1px; }
+
+.modal-hint  { font-size: 0.75rem; color: #999; line-height: 1.5; margin-bottom: 0.75rem; }
+.modal-error {
+  font-size: 0.8rem;
+  color: #b3261e;
+  background: #fdeceb;
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  margin-bottom: 0.75rem;
+}
+
+.modal-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+
+.btn-primary, .btn-secondary {
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.btn-primary { background: #c05c7e; color: #fff; font-weight: 600; }
+.btn-primary:hover:not(:disabled) { background: #a94a6a; }
+.btn-secondary { background: #fff; border-color: #e0ccc5; color: #666; }
+.btn-secondary:hover:not(:disabled) { background: #fdf6f0; }
+.btn-primary:disabled, .btn-secondary:disabled { opacity: 0.6; cursor: default; }
+
+/* Indicador discreto de que o modo dev está ativo */
+.dev-badge {
+  position: fixed;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  background: #1a1a1a;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.7rem;
+  font-family: inherit;
+  cursor: pointer;
+  opacity: 0.75;
+  z-index: 90;
+}
+.dev-badge:hover { opacity: 1; }
