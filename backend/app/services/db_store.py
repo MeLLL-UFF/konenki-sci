@@ -110,13 +110,19 @@ def get_trend_by_id(trend_id: str) -> Optional[TrendModel]:
         return db.scalar(select(TrendModel).where(TrendModel.id == trend_id))
 
 
-def get_recent_articles(days: int = 30, max_results: int = 8) -> List[ArticleModel]:
-    """Retorna artigos recentes salvos no banco ordenados pelo mais recente."""
-    cutoff = datetime.utcnow() - timedelta(days=days)
+def get_recent_articles(days: Optional[int] = 30, max_results: int = 8) -> List[ArticleModel]:
+    """Retorna artigos recentes salvos no banco ordenados pelo mais recente.
+
+    Com days=None não filtra por período: devolve os max_results artigos mais
+    recentes do banco, independentemente de quando foram publicados.
+    """
     with get_db() as db:
+        query = select(ArticleModel)
+        if days is not None:
+            cutoff = datetime.utcnow() - timedelta(days=days)
+            query = query.where(ArticleModel.created_at >= cutoff)
         result = db.execute(
-            select(ArticleModel)
-            .where(ArticleModel.created_at >= cutoff)
+            query
             .order_by(desc(ArticleModel.published_at), desc(ArticleModel.created_at))
             .limit(max_results)
         )
