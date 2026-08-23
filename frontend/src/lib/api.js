@@ -1,9 +1,11 @@
+import { devHeaders } from "./devMode";
+
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 
 export async function ask({ question, plainLanguage }) {
   const res = await fetch(`${BASE}/ask`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...devHeaders() },
     body: JSON.stringify({ question, plain_language: plainLanguage }),
   });
   if (!res.ok) throw new Error(`API error ${res.status}`);
@@ -44,7 +46,7 @@ export async function fetchNewsTrend(id) {
 export async function askStream({ question, plainLanguage, onStep, onResult }) {
   const res = await fetch(`${BASE}/ask/stream`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...devHeaders() },
     body: JSON.stringify({ question, plain_language: plainLanguage }),
   });
   const reader = res.body.getReader();
@@ -64,4 +66,15 @@ export async function askStream({ question, plainLanguage, onStep, onResult }) {
       if (event.type === "error")  throw new Error(event.message);
     }
   }
+}
+export async function validateDevKey({ model, apiKey }) {
+  const res = await fetch(`${BASE}/dev/validate-key`, {
+    method: "POST",
+    headers: { "X-LLM-Model": model, "X-LLM-Api-Key": apiKey },
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.detail || `API error ${res.status}`);
+  }
+  return res.json();
 }

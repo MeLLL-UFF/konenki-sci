@@ -2,10 +2,20 @@ from app.providers import get_llm_provider
 from app.services.db_store import get_recent_articles, get_recent_trends
 
 
-async def generate_newsletter(days: int = 30, max_results: int = 8) -> dict:
+# A newsletter usa os artigos mais recentes do banco, sem recorte por período,
+# limitados a MAX_ARTICLES para não estourar o contexto do LLM.
+MAX_ARTICLES = 100
+MAX_TRENDS = 8
+
+
+async def generate_newsletter(
+    days: int | None = None,
+    max_results: int = MAX_ARTICLES,
+    max_trends: int = MAX_TRENDS,
+) -> dict:
     llm = get_llm_provider()
     articles = get_recent_articles(days=days, max_results=max_results)
-    trends = get_recent_trends(max_results=max_results)
+    trends = get_recent_trends(max_results=max_trends)
 
     if not articles:
         raise ValueError("Nenhum artigo salvo no banco de dados para gerar a newsletter.")

@@ -30,10 +30,15 @@ _SYSTEM_PROMPT = (
 class SimplifierAgent(BaseAgent):
     """Agente de simplificação: adapta a linguagem científica para o público leigo."""
 
-    def __init__(self, on_step: StepCallback = None, model: Optional[str] = None):
+    def __init__(
+        self,
+        on_step: StepCallback = None,
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ):
         super().__init__(on_step)
         resolved = model or get_settings().simplifier_model or None
-        self.llm = get_llm_provider(model=resolved)
+        self.llm = get_llm_provider(model=resolved, api_key=api_key)
 
     async def run(self, scientific_answer: str) -> AgentResult:
         await self._step("Adaptando resposta para linguagem acessível…")

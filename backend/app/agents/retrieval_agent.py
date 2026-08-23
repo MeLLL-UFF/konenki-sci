@@ -36,10 +36,15 @@ _ANSWER_SYSTEM = (
 class RetrievalAgent(BaseAgent):
     """Agente de recuperação: busca evidências no PubMed e sintetiza resposta científica."""
 
-    def __init__(self, on_step: StepCallback = None, model: Optional[str] = None):
+    def __init__(
+        self,
+        on_step: StepCallback = None,
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ):
         super().__init__(on_step)
         resolved = model or get_settings().retrieval_model or None
-        self.llm = get_llm_provider(model=resolved)
+        self.llm = get_llm_provider(model=resolved, api_key=api_key)
 
     async def run(self, question: str) -> AgentResult:
         # ── Etapa 1: gerar query PubMed ──────────────────────────────────────

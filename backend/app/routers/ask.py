@@ -1,13 +1,35 @@
 import json
 import asyncio
 
-from fastapi import APIRouter
+import httpx
+from fastapi import APIRouter, Header, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from app.agents import OrchestratorAgent, OrchestratorResult
+from app.providers import get_llm_provider
 
 router = APIRouter()
+
+
+# ── Modo desenvolvedor ────────────────────────────────────────────────────────
+# A chave chega por cabeçalho (nunca no corpo, para não aparecer em logs de
+# request nem no schema público da API), vale só para esta requisição e não é
+# gravada em lugar nenhum.
+
+class DevCreds(BaseModel):
+    model: str | None = None
+    api_key: str | None = None
+
+
+def dev_creds(
+    x_llm_model:   str | None = Header(default=None),
+    x_llm_api_key: str | None = Header(default=None),
+) -> DevCreds:
+    return DevCreds(
+        model=(x_llm_model or "").strip() or None,
+        api_key=(x_llm_api_key or "").strip() or None,
+    )
 
 
 # ── Schemas de entrada/saída ──────────────────────────────────────────────────
@@ -35,9 +57,19 @@ class AskResponse(BaseModel):
 # ── Endpoint síncrono (resposta completa) ─────────────────────────────────────
 
 @router.post("/ask", response_model=AskResponse)
-async def ask(body: AskRequest):
+async def ask(
+    body: AskRequest,
+    x_llm_model:   str | None = Header(default=None),
+    x_llm_api_key: str | None = Header(default=None),
+):
     """Retorna a resposta completa após passar por todos os agentes."""
-    orchestrator = OrchestratorAgent()
+    creds = dev_creds(x_llm_model, x_llm_api_key)
+    orchestrator = OrchestratorAgent(
+        guardrail_model=creds.model,
+        retrieval_model=creds.model,
+        simplifier_model=creds.model,
+        api_key=creds.api_key,
+    )
     result: OrchestratorResult = await orchestrator.run(
         question=body.question,
         plain_language=body.plain_language,
@@ -48,12 +80,19 @@ async def ask(body: AskRequest):
 # ── Endpoint SSE (progresso em tempo real) ────────────────────────────────────
 
 @router.post("/ask/stream")
-async def ask_stream(body: AskRequest):
+async def ask_stream(
+    body: AskRequest,
+    x_llm_model:   str | None = Header(default=None),
+    x_llm_api_key: str | None = Header(default=None),
+):
     """Envia eventos SSE com progresso das etapas + resultado final."""
-    return StreamingResponse(_event_generator(body), media_type="text/event-stream")
+    creds = dev_creds(x_llm_model, x_llm_api_key)
+    return StreamingResponse(
+        _event_generator(body, creds), media_type="text/event-stream"
+    )
 
 
-async def _event_generator(body: AskRequest):
+async def _event_generator(body: AskRequest, creds: DevCreds):
     step_queue: asyncio.Queue = asyncio.Queue()
 
     async def enqueue_step(msg: str):
@@ -61,7 +100,13 @@ async def _event_generator(body: AskRequest):
 
     async def run():
         try:
-            orchestrator = OrchestratorAgent(on_step=enqueue_step)
+            orchestrator = OrchestratorAgent(
+                on_step=enqueue_step,
+                guardrail_model=creds.model,
+                retrieval_model=creds.model,
+                simplifier_model=creds.model,
+                api_key=creds.api_key,
+            )
             result = await orchestrator.run(
                 question=body.question,
                 plain_language=body.plain_language,
@@ -104,3 +149,43 @@ def _to_response(result: OrchestratorResult) -> AskResponse:
         blocked=result.blocked,
         plain_language=result.plain_language,
     )
+
+
+# ── Validação da chave do modo desenvolvedor ──────────────────────────────────
+
+@router.post("/dev/validate-key")
+async def validate_dev_key(
+    x_llm_model:   str | None = Header(default=None),
+    x_llm_api_key: str | None = Header(default=None),
+):
+    """
+    Testa a chave/modelo com um prompt mínimo, para o testador descobrir
+    imediatamente se errou a chave — e não no meio de uma pergunta longa.
+    A chave não é gravada em lugar nenhum.
+    """
+    creds = dev_creds(x_llm_model, x_llm_api_key)
+    if not creds.api_key:
+        raise HTTPException(status_code=422, detail="Informe a chave de API.")
+    if not creds.model:
+        raise HTTPException(status_code=422, detail="Informe o nome do modelo.")
+
+    llm = get_llm_provider(model=creds.model, api_key=creds.api_key)
+    try:
+        await llm.complete(system="Responda apenas: ok", user="ok")
+    except httpx.HTTPStatusError as e:
+        code = e.response.status_code
+        if code in (401, 403):
+            detail = "Chave rejeitada pelo provedor (401/403). Verifique se está correta."
+        elif code == 404:
+            detail = f"Modelo {creds.model!r} não encontrado nesse provedor."
+        elif code == 429:
+            detail = "Limite de uso atingido nessa chave (429)."
+        else:
+            detail = f"Provedor respondeu {code}."
+        raise HTTPException(status_code=400, detail=detail)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Falha ao contatar o provedor: {type(e).__name__}")
+
+    return {"ok": True, "model": creds.model}
