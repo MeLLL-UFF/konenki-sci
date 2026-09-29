@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from app.agents import OrchestratorAgent, OrchestratorResult
 from app.providers import get_llm_provider
+from app.services import conversation as convo
 
 router = APIRouter()
 
@@ -37,6 +38,14 @@ def dev_creds(
 class AskRequest(BaseModel):
     question:       str
     plain_language: bool = False
+    # Identifica a conversa. O frontend omite na primeira pergunta e reenvia o
+    # id devolvido na resposta nas seguintes — é isso que amarra os turnos numa
+    # conversa só. Sem ele, cada pergunta é tratada como uma conversa nova.
+    session_id:     str | None = None
+
+
+class ResetRequest(BaseModel):
+    session_id: str | None = None
 
 
 class ArticleOut(BaseModel):
@@ -52,6 +61,7 @@ class AskResponse(BaseModel):
     articles:      list[ArticleOut]
     blocked:       bool = False       # True quando o Guardrail bloqueou a pergunta
     plain_language: bool = False
+    session_id:    str = ""            # o frontend devolve isto na próxima pergunta
 
 
 # ── Endpoint síncrono (resposta completa) ─────────────────────────────────────
@@ -73,6 +83,7 @@ async def ask(
     result: OrchestratorResult = await orchestrator.run(
         question=body.question,
         plain_language=body.plain_language,
+        session_id=body.session_id,
     )
     return _to_response(result)
 
@@ -110,6 +121,7 @@ async def _event_generator(body: AskRequest, creds: DevCreds):
             result = await orchestrator.run(
                 question=body.question,
                 plain_language=body.plain_language,
+                session_id=body.session_id,
             )
             await step_queue.put(("done", result))
         except Exception as e:
@@ -148,7 +160,23 @@ def _to_response(result: OrchestratorResult) -> AskResponse:
         ],
         blocked=result.blocked,
         plain_language=result.plain_language,
+        session_id=result.session_id,
     )
+
+
+# ── Encerrar conversa ─────────────────────────────────────────────────────────
+
+@router.post("/ask/reset")
+async def reset_conversation(body: ResetRequest):
+    """
+    Descarta a memória da conversa quando a usuária começa um chat novo.
+
+    Não é obrigatório chamar — a sessão expira sozinha por inatividade —, mas
+    libera a memória na hora e garante que o próximo turno comece limpo.
+    """
+    if body.session_id:
+        convo.reset(body.session_id)
+    return {"ok": True}
 
 
 # ── Validação da chave do modo desenvolvedor ──────────────────────────────────

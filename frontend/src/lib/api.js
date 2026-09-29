@@ -2,11 +2,15 @@ import { devHeaders } from "./devMode";
 
 const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 
-export async function ask({ question, plainLanguage }) {
+export async function ask({ question, plainLanguage, sessionId }) {
   const res = await fetch(`${BASE}/ask`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...devHeaders() },
-    body: JSON.stringify({ question, plain_language: plainLanguage }),
+    body: JSON.stringify({
+      question,
+      plain_language: plainLanguage,
+      session_id: sessionId ?? null,
+    }),
   });
   if (!res.ok) throw new Error(`API error ${res.status}`);
   return res.json();
@@ -43,11 +47,16 @@ export async function fetchNewsTrend(id) {
   return res.json();
 }
 
-export async function askStream({ question, plainLanguage, onStep, onResult }) {
+export async function askStream({ question, plainLanguage, sessionId, onStep, onResult }) {
   const res = await fetch(`${BASE}/ask/stream`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...devHeaders() },
-    body: JSON.stringify({ question, plain_language: plainLanguage }),
+    body: JSON.stringify({
+      question,
+      plain_language: plainLanguage,
+      // null na primeira pergunta; depois, o id que o backend devolveu.
+      session_id: sessionId ?? null,
+    }),
   });
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
@@ -67,6 +76,23 @@ export async function askStream({ question, plainLanguage, onStep, onResult }) {
     }
   }
 }
+/**
+ * Descarta a memória da conversa no servidor. Não bloqueia a interface: se
+ * falhar, a sessão expira sozinha por inatividade.
+ */
+export async function resetConversation(sessionId) {
+  if (!sessionId) return;
+  try {
+    await fetch(`${BASE}/ask/reset`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: sessionId }),
+    });
+  } catch {
+    /* silencioso de propósito: o TTL do servidor resolve */
+  }
+}
+
 export async function validateDevKey({ model, apiKey }) {
   const res = await fetch(`${BASE}/dev/validate-key`, {
     method: "POST",

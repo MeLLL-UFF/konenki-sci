@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     guardrail_model:  str = ""   # ex: modelo rápido/barato para triagem
     retrieval_model:  str = ""   # ex: modelo capaz para síntese científica
     simplifier_model: str = ""   # ex: modelo criativo para linguagem simples
+    summarizer_model: str = ""   # memória da conversa; vazio → usa guardrail_model
 
     # ── Local provider (Ollama / vLLM) ───────────────────
     ollama_base_url:   str = "http://localhost:11434"
