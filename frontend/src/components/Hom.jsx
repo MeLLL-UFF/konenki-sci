@@ -17,7 +17,7 @@ export default function Home({ onTriagem, onNews }) {
   const [question, setQuestion]   = useState("");
   const [plain,    setPlain]      = useState(false);
   const [history,  setHistory]    = useState([]);
-  const { loading, step, result, error, submit } = useAsk();
+  const { loading, step, result, error, submit, resetConversation } = useAsk();
   const bottomRef = useRef(null);
   const textRef   = useRef(null);
 
@@ -35,12 +35,26 @@ export default function Home({ onTriagem, onNews }) {
     setQuestion("");
   };
 
+  // Limpa a tela e a memória no servidor: a próxima pergunta começa do zero.
+  const handleNewChat = () => {
+    if (loading) return;
+    setHistory([]);
+    setQuestion("");
+    resetConversation();
+    textRef.current?.focus();
+  };
+
   return (
     <div className="page">
       <header className="header">
         <div className="header-row">
           <div className="logo">🌸 <span>MenopausIA</span></div>
           <nav className="header-nav">
+            {history.length > 0 && (
+              <button className="nav-link" onClick={handleNewChat} disabled={loading}>
+                Nova conversa
+              </button>
+            )}
             <button className="nav-link" onClick={onNews}>Newsletter</button>
           </nav>
         </div>

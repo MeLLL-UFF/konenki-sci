@@ -35,6 +35,16 @@ Regras:
     * For sobre saúde masculina exclusiva ou saúde infantil.
 - "reason" deve conter, em português, uma breve explicação APENAS quando allowed=false.
 - Não adicione nada além do JSON.
+
+Quando houver contexto da conversa anterior, avalie a pergunta À LUZ dele: perguntas curtas
+de acompanhamento ("e isso é seguro?", "por quanto tempo?", "e depois dos 60?") herdam o
+tema do turno anterior e devem ser permitidas se esse tema estiver no escopo.
+
+PRECEDÊNCIA: as regras de bloqueio acima prevalecem sobre a herança de contexto. Herdar o
+tema do turno anterior NÃO torna em escopo um assunto explicitamente vedado. Se a pergunta
+desloca a conversa para um desses assuntos, bloqueie — mesmo que o tema herdado esteja em
+escopo. Exemplo: após uma pergunta sobre terapia hormonal, "e para os homens?" deve ser
+bloqueada, pois trata de saúde masculina exclusiva.
 """.strip()
 
 
@@ -51,12 +61,16 @@ class GuardrailAgent(BaseAgent):
         resolved = model or get_settings().guardrail_model or None
         self.llm = get_llm_provider(model=resolved, api_key=api_key)
 
-    async def run(self, question: str) -> AgentResult:
+    async def run(self, question: str, context: str = "") -> AgentResult:
         await self._step("Verificando se a pergunta está dentro do escopo…")
+
+        prompt = f'Pergunta: "{question}"'
+        if context:
+            prompt = f"{context}\n\n{prompt}"
 
         raw = await self.llm.complete(
             system=_SYSTEM_PROMPT,
-            user=f'Pergunta: "{question}"',
+            user=prompt,
         )
 
         allowed, reason = self._parse(raw)

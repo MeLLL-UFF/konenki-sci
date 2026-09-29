@@ -21,7 +21,9 @@ from app.services.pubmed import search_pubmed_with_fallback, fetch_abstracts
 _QUERY_SYSTEM = (
     "You are a biomedical search expert. "
     "Reply with only a concise PubMed English search query (max 8 keywords). "
-    "No explanation, no quotes."
+    "No explanation, no quotes. "
+    "If conversation context is provided, use it to resolve pronouns and elliptical "
+    "follow-up questions into a self-contained query."
 )
 
 _ANSWER_SYSTEM = (
@@ -29,7 +31,11 @@ _ANSWER_SYSTEM = (
     "Responda de forma científica mas compreensível, citando os estudos com [1], [2], etc. "
     "Use parágrafos estruturados. "
     "Responda sempre em português do Brasil. "
-    "Use apenas as informações dos artigos fornecidos. Não invente dados."
+    "Use apenas as informações dos artigos fornecidos. Não invente dados.\n"
+    "Quando houver contexto da conversa, trate-o como memória do que já foi conversado: "
+    "não repita explicações já dadas, faça referência a elas ('como vimos sobre…') e "
+    "responda no fio do que a usuária vinha perguntando. O contexto serve para entender "
+    "a pergunta — as informações da resposta continuam vindo apenas dos artigos."
 )
 
 
@@ -46,12 +52,18 @@ class RetrievalAgent(BaseAgent):
         resolved = model or get_settings().retrieval_model or None
         self.llm = get_llm_provider(model=resolved, api_key=api_key)
 
-    async def run(self, question: str) -> AgentResult:
+    async def run(self, question: str, context: str = "") -> AgentResult:
         # ── Etapa 1: gerar query PubMed ──────────────────────────────────────
+        # O contexto entra aqui porque "e isso é seguro?" sozinho gera uma query
+        # inútil — é preciso saber a que "isso" se refere antes de ir ao PubMed.
         await self._step("Traduzindo pergunta para query científica…")
+        query_prompt = f'Translate this menopause question to a PubMed search query: "{question}"'
+        if context:
+            query_prompt = f"Conversation context:\n{context}\n\n{query_prompt}"
+
         pubmed_query = await self.llm.complete(
             system=_QUERY_SYSTEM,
-            user=f'Translate this menopause question to a PubMed search query: "{question}"',
+            user=query_prompt,
         )
         pubmed_query = pubmed_query.strip().strip('"')
 
@@ -91,13 +103,17 @@ class RetrievalAgent(BaseAgent):
             for i, a in enumerate(articles)
         )
 
+        answer_prompt = (
+            f'Pergunta: "{question}"\n\n'
+            f"Artigos do PubMed:\n\n{corpus}\n\n"
+            f"Responda à pergunta com base exclusivamente nesses artigos."
+        )
+        if context:
+            answer_prompt = f"{context}\n\n{answer_prompt}"
+
         answer = await self.llm.complete(
             system=_ANSWER_SYSTEM,
-            user=(
-                f'Pergunta: "{question}"\n\n'
-                f"Artigos do PubMed:\n\n{corpus}\n\n"
-                f"Responda à pergunta com base exclusivamente nesses artigos."
-            ),
+            user=answer_prompt,
         )
 
         return AgentResult(
