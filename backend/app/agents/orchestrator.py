@@ -39,6 +39,9 @@ class OrchestratorResult:
     blocked: bool = False          # True se o Guardrail bloqueou a pergunta
     urgent: bool = False           # True se o bloqueio foi por sinal de alarme relatado
     plain_language: bool = False   # True se o Simplifier foi aplicado
+    language_retry: bool = False   # True se a síntese foi regenerada por sair em outro idioma
+    articles_discarded: int = 0    # resumos descartados pelo filtro de pertinência (M7)
+    no_evidence: bool = False      # True se a busca não deixou nenhum resumo pertinente (M7)
     session_id: str = ""           # sessão a que este turno pertence
 
 
@@ -121,6 +124,9 @@ class OrchestratorAgent:
                 answer=ret_result.output,
                 pubmed_query=ret_result.metadata.get("pubmed_query", ""),
                 articles=[],
+                language_retry=bool(ret_result.metadata.get("language_retry")),
+                articles_discarded=ret_result.metadata.get("articles_discarded", 0),
+                no_evidence=bool(ret_result.metadata.get("no_evidence")),
                 session_id=conv.session_id,
             )
 
@@ -143,6 +149,8 @@ class OrchestratorAgent:
             pubmed_query=pubmed_query,
             articles=articles,
             plain_language=plain_language,
+            language_retry=bool(ret_result.metadata.get("language_retry")),
+            articles_discarded=ret_result.metadata.get("articles_discarded", 0),
             session_id=conv.session_id,
         )
 

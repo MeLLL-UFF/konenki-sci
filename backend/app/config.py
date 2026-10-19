@@ -32,6 +32,9 @@ class Settings(BaseSettings):
 
     # ── PubMed ────────────────────────────────────────────
     pubmed_max_results: int = 6
+    # Filtro de pertinência dos resumos antes da síntese (M7): uma chamada a
+    # mais ao LLM por pergunta. Desligue para medir o sistema sem ele.
+    relevance_filter:   bool = True
 
     # ── News API ──────────────────────────────────────────
     news_api_key: str = ""

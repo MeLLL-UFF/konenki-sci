@@ -62,6 +62,9 @@ class AskResponse(BaseModel):
     blocked:       bool = False       # True quando o Guardrail bloqueou a pergunta
     urgent:        bool = False       # True quando o bloqueio foi por sinal de alarme
     plain_language: bool = False
+    language_retry: bool = False      # True quando a síntese foi regenerada por idioma (M5)
+    articles_discarded: int = 0       # resumos descartados por não tratarem da pergunta (M7)
+    no_evidence:   bool = False       # True quando a busca não achou nenhum resumo pertinente (M7)
     session_id:    str = ""            # o frontend devolve isto na próxima pergunta
 
 
@@ -162,6 +165,9 @@ def _to_response(result: OrchestratorResult) -> AskResponse:
         blocked=result.blocked,
         urgent=result.urgent,
         plain_language=result.plain_language,
+        language_retry=result.language_retry,
+        articles_discarded=result.articles_discarded,
+        no_evidence=result.no_evidence,
         session_id=result.session_id,
     )
 
