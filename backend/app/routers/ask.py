@@ -60,6 +60,7 @@ class AskResponse(BaseModel):
     pubmed_query:  str
     articles:      list[ArticleOut]
     blocked:       bool = False       # True quando o Guardrail bloqueou a pergunta
+    urgent:        bool = False       # True quando o bloqueio foi por sinal de alarme
     plain_language: bool = False
     session_id:    str = ""            # o frontend devolve isto na próxima pergunta
 
@@ -159,6 +160,7 @@ def _to_response(result: OrchestratorResult) -> AskResponse:
             for a in result.articles
         ],
         blocked=result.blocked,
+        urgent=result.urgent,
         plain_language=result.plain_language,
         session_id=result.session_id,
     )

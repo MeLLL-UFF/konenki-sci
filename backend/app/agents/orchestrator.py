@@ -37,6 +37,7 @@ class OrchestratorResult:
     pubmed_query: str
     articles: List[Article] = field(default_factory=list)
     blocked: bool = False          # True se o Guardrail bloqueou a pergunta
+    urgent: bool = False           # True se o bloqueio foi por sinal de alarme relatado
     plain_language: bool = False   # True se o Simplifier foi aplicado
     session_id: str = ""           # sessão a que este turno pertence
 
@@ -100,12 +101,14 @@ class OrchestratorAgent:
 
         if not guard_result.success:
             # Pergunta bloqueada não entra na memória: registrá-la poluiria o
-            # resumo com um tema fora de escopo.
+            # resumo com um tema fora de escopo. Vale também para o veredito de
+            # urgência, cuja mensagem é fixa e não depende do contexto.
             return OrchestratorResult(
                 answer=guard_result.output,
                 pubmed_query="",
                 articles=[],
                 blocked=True,
+                urgent=bool(guard_result.metadata.get("urgent")),
                 session_id=conv.session_id,
             )
 
