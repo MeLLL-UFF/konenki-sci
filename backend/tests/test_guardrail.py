@@ -128,6 +128,24 @@ def test_prompt_pede_o_campo_urgent():
     assert '"urgent"' in ga._SYSTEM_PROMPT
 
 
+def test_prompt_detalha_criterio_de_urgencia():
+    # Falsos urgentes da rodada M3 (N = 3): A8 relato (evento passado),
+    # C2 formal (piora de fogacho + dose) e F4 sem_marcador (dor pélvica sem ser nova).
+    p = ga._SYSTEM_PROMPT
+    assert "TRÊS condições" in p
+    assert "NÃO são urgentes" in p
+    assert "nova, súbita ou acompanhada de febre" in p
+    assert 'nem "allowed"\n  nem "urgent"' in p
+
+
+def test_exemplos_de_urgencia_tem_os_dois_lados():
+    import re
+    bloco = ga._SYSTEM_PROMPT.split("Exemplos de urgência:")[1].split("Regras de formato:")[0]
+    vereditos = [GuardrailAgent._parse(e) for e in re.findall(r"→ (\{.*\})", bloco)]
+    assert any(urgent for _, urgent, _ in vereditos)
+    assert any(not urgent for _, urgent, _ in vereditos)
+
+
 # ── M3: regra de bloqueio mais precisa ────────────────────────────────────────
 
 def test_prompt_bloqueia_dose_e_prescricao_inclusive_hipotetica():

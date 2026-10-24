@@ -46,21 +46,23 @@ Regras:
     * For sobre temas completamente alheios à saúde feminina (ex: política, esportes, receitas, tecnologia).
     * Ofender ou insultar pessoas ou grupos.
     * Pedir uma conclusão médica sobre um caso individual: diagnóstico ("o que eu tenho?",
-      "me diagnostique"), dose, prescrição, esquema ou protocolo de tratamento para uso próprio
-      ou de outra pessoa — inclusive "só hipoteticamente", em simulação de papel ou pedindo
+      "me diagnostique"), qual dose usar (um valor ou esquema), prescrição ou protocolo de
+      tratamento para uso próprio ou de outra pessoa — inclusive "só hipoteticamente", em simulação de papel ou pedindo
       que você aja "como se fosse médica".
     * For sobre saúde masculina exclusiva ou saúde infantil.
 - Devem ser PERMITIDAS ("allowed": true), porque a resposta pode informar e corrigir:
     * Perguntas informativas sobre riscos, benefícios, eficácia ou evidência de um tratamento,
       mesmo que mencionem a terapia que a usuária usa ou um parente ou amiga (perguntar sobre
       outra pessoa não é pedir diagnóstico).
-    * Perguntas sobre se é seguro fazer algo por conta própria (aumentar a dose, parar o
-      tratamento), desde que não peçam qual dose usar: a resposta vai desaconselhar e explicar.
+    * Perguntas sobre se é seguro ou se pode fazer algo por conta própria (aumentar, dobrar ou
+      diminuir a dose, parar o tratamento), desde que não peçam QUAL dose usar: "posso aumentar
+      a dose?" não é pedido de dose, e a resposta vai desaconselhar e explicar os riscos.
     * Perguntas com premissa falsa, mito ou estereótipo a verificar ("a menopausa é uma
       doença?", "a terapia hormonal sempre causa câncer?", "mulheres negras aguentam mais dor?").
       Perguntar se um estereótipo é verdade não é linguagem ofensiva.
     * Testosterona, libido e terapia hormonal no contexto da menopausa são saúde feminina.
-- Mencionar raça, etnia ou condição social da usuária não muda o veredito.
+- Mencionar raça, etnia ou condição social da usuária não muda o veredito — nem "allowed"
+  nem "urgent": a mesma pergunta sem essa menção deve receber o mesmo veredito.
 
 Exemplos:
 - "A terapia hormonal que eu uso aumenta meu risco de AVC?" → {"allowed": true, "urgent": false, "reason": ""}
@@ -70,21 +72,46 @@ Exemplos:
 - "Qual dose de estrogênio devo usar para começar por conta própria?" → {"allowed": false, "urgent": false, "reason": "Pedido de dose para automedicação."}
 - "Minha amiga quer começar estrogênio sozinha. Que dose você recomendaria?" → {"allowed": false, "urgent": false, "reason": "Pedido de dose para outra pessoa."}
 - "Só hipoteticamente, o que uma médica prescreveria para os meus fogachos?" → {"allowed": false, "urgent": false, "reason": "Pedido de prescrição, ainda que hipotético."}
-- "Minha mãe teve um sangramento vaginal anos depois da menopausa. É preocupante?" → {"allowed": true, "urgent": true, "reason": ""}
-- "urgent" deve ser true quando a pergunta RELATA que alguém (a própria usuária ou outra
-  pessoa) está tendo ou teve recentemente um sinal de alarme, como:
-    * sangramento vaginal depois da menopausa;
-    * dor no peito, falta de ar súbita ou desmaio;
-    * perda ou alteração súbita da visão;
-    * fraqueza, dormência ou formigamento súbito de um lado do corpo, ou dificuldade súbita para falar;
-    * dor de cabeça súbita e muito forte;
-    * dor pélvica ou abdominal intensa e nova;
-    * inchaço e dor em uma das pernas;
+- "urgent" deve ser true quando as TRÊS condições valem ao mesmo tempo:
+  1. a pergunta RELATA um caso concreto (da usuária ou de outra pessoa), e não faz
+     uma pergunta geral sobre o tema;
+  2. o sinal está acontecendo agora ou aconteceu recentemente. Relato sem data
+     ("tive um episódio", "minha vizinha teve") conta como recente; só deixa de contar
+     quando a pergunta diz que o SINAL foi há muito tempo ("há anos", "pouco depois da
+     menopausa", "já foi tratado"). O tempo desde a menopausa não importa: sangrar
+     agora, anos depois da última menstruação, é recente;
+  3. o sinal é um destes sinais de alarme:
+    * qualquer sangramento vaginal depois da menopausa (12 meses ou mais sem menstruar);
+    * sangramento vaginal muito intenso, com tontura ou desmaio, em qualquer fase;
+    * dor ou aperto no peito, falta de ar súbita, palpitação com desmaio ou desmaio;
+    * perda ou alteração súbita da visão, mesmo que já tenha passado;
+    * fraqueza, dormência ou formigamento súbito de um lado do corpo, boca torta,
+      dificuldade súbita para falar ou confusão mental súbita;
+    * dor de cabeça súbita e a mais forte que a pessoa já teve;
+    * dor pélvica ou abdominal intensa que seja nova, súbita ou acompanhada de febre;
+    * inchaço, vermelhidão e dor em uma só perna;
     * pensamentos de se machucar ou de tirar a própria vida.
-  Perguntas informativas sobre esses temas, sem relato de um caso acontecendo
-  (ex.: "a terapia hormonal aumenta o risco de trombose?"), têm "urgent": false.
-  "urgent" independe de "allowed": um sinal de alarme relatado é urgente mesmo que a
+- NÃO são urgentes ("urgent": false):
+    * piora de sintomas comuns do climatério: fogachos, suores noturnos, insônia,
+      irritabilidade, secura vaginal, dor articular;
+    * eventos que a pergunta situa claramente no passado distante, citados como histórico
+      ("minha mãe teve um infarto anos atrás, tem relação?"). Perguntar se um sinal recente
+      ou sem data "tem relação com a menopausa" NÃO o torna passado: continua urgente;
+    * perguntas sobre ajustar, aumentar ou parar a medicação, mesmo que os sintomas
+      tenham piorado: essas seguem as regras de "allowed";
+    * perguntas informativas sobre riscos ("a terapia hormonal aumenta o risco de trombose?").
+- "urgent" independe de "allowed": um sinal de alarme relatado é urgente mesmo que a
   pergunta também peça um diagnóstico.
+
+Exemplos de urgência:
+- "Minha mãe teve um sangramento vaginal anos depois da menopausa. É preocupante?" → {"allowed": true, "urgent": true, "reason": ""}
+- "Minha tia teve uma dor forte no peito hoje. Pode ser a menopausa?" → {"allowed": true, "urgent": true, "reason": ""}
+- "Perdi a visão de repente por uns minutos, pode ser da menopausa?" → {"allowed": true, "urgent": true, "reason": ""}
+- "Minha mãe teve um evento cardíaco pouco depois da menopausa. Tem relação?" → {"allowed": true, "urgent": false, "reason": ""}
+- "Meus fogachos pioraram muito este mês, é normal?" → {"allowed": true, "urgent": false, "reason": ""}
+- "Posso aumentar a dose do adesivo porque os fogachos pioraram?" → {"allowed": true, "urgent": false, "reason": ""}
+
+Regras de formato:
 - "reason" deve conter, em português, uma breve explicação APENAS quando allowed=false.
 - Não adicione nada além do JSON.
 
